@@ -1,33 +1,60 @@
-from datasets import load_from_disk
+from datasets import load_from_disk, Dataset
 from transformers import AutoProcessor, MarkupLMForQuestionAnswering
+from sentence_transformers import SentenceTransformer, util
 import torch
 
-processor = AutoProcessor.from_pretrained("microsoft/markuplm-base-finetuned-websrc")
-model = MarkupLMForQuestionAnswering.from_pretrained("microsoft/markuplm-base-finetuned-websrc")
 
-dataset = load_from_disk("D:/datasets/phishing_identification/phish")
+def inference_brand(html_string: str) -> str:
+    processor = AutoProcessor.from_pretrained("microsoft/markuplm-base-finetuned-websrc")
+    model = MarkupLMForQuestionAnswering.from_pretrained("microsoft/markuplm-base-finetuned-websrc")
 
-html_string = dataset["phish"][100]["html"]
-question = "What's the brand name of the website?"
+    question = "What is the brand name of the website?"
 
-encoding = processor(html_string, questions=question, return_tensors="pt")
+    encoding = processor(html_string, questions=question, return_tensors="pt", truncation=True)
 
-with torch.no_grad():
-    outputs = model(**encoding)
+    with torch.no_grad():
+        outputs = model(**encoding)
 
-answer_start_index = outputs.start_logits.argmax()
-answer_end_index = outputs.end_logits.argmax()
+    answer_start_index = outputs.start_logits.argmax()
+    answer_end_index = outputs.end_logits.argmax()
 
-predict_answer_tokens = encoding.input_ids[0, answer_start_index : answer_end_index + 1]
-inference_brand = processor.decode(predict_answer_tokens).strip()
-print(f"inference : {inference_brand}")
-print(f"answer : {dataset['phish'][0]['brand']}")
+    predict_answer_tokens = encoding.input_ids[0, answer_start_index : answer_end_index + 1]
+    answer = processor.decode(predict_answer_tokens).strip()
+    # print(f"inference : {answer}")
+    return answer
 
-# calculate similarity between two brand strings
-from sentence_transformers import SentenceTransformer, util
-model = SentenceTransformer('all-MiniLM-L6-v2')
 
-query_embedding = model.encode(dataset['phish'][0]['brand'])
-passage_embedding = model.encode([inference_brand])
+def get_similar_brand(inference_brand: str, bland_list: list) -> str:
+    # calculate similarity between two brand strings
+    model = SentenceTransformer('all-MiniLM-L6-v2')
 
-print("Similarity:", util.dot_score(query_embedding, passage_embedding))
+    query_embedding = model.encode(inference_brand)
+    passage_embedding = model.encode(brand_list)
+
+    # print(f"most similar brand : {brand_list[util.dot_score(query_embedding, passage_embedding).argmax()]} "
+    #       f"/ Similarity : {util.dot_score(query_embedding, passage_embedding).max()}")
+    return brand_list[util.dot_score(query_embedding, passage_embedding).argmax()]
+
+
+if __name__ == "__main__":
+    # load dataset
+    dataset = load_from_disk("D:/datasets/phishing_identification/phish", keep_in_memory=True)
+    # generate target brand list
+    phish = Dataset.from_list(dataset["phish"])
+    brand_list = list(set(phish["brand"]))
+
+    poc_dataset = phish.shuffle(seed=25).select(range(100))
+
+    correct_ans = 0
+    for data in poc_dataset:
+        html_string = data["html"]
+        model_inference = inference_brand(html_string)
+        identified_brand = get_similar_brand(model_inference, brand_list)
+        print(f"model inference : {model_inference} / "
+              f"identified brand : {identified_brand} / "
+              f"correct : {data['brand']}")
+
+        if identified_brand == data["brand"]:
+            correct_ans += 1
+
+    print(f"accuracy : {correct_ans / 100}")

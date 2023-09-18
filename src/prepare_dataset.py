@@ -1,5 +1,7 @@
 import ast
+import base64
 import os
+import re
 from typing import Literal
 
 from bs4 import BeautifulSoup
@@ -27,7 +29,17 @@ class DatasetGenerator:
         return html_json_pairs
 
     @staticmethod
-    def _shorten_html(html_text: str) -> str:
+    def _is_base64(text: str) -> bool:
+        pattern = r'^[A-Za-z0-9+/]*={0,2}$'
+        if re.match(pattern, text):
+            try:
+                base64.b64decode(text)
+                return True
+            except:
+                return False
+        return False
+
+    def _shorten_html(self, html_text: str) -> str:
         soup = BeautifulSoup(html_text, 'html.parser')
         allowed_tags = [
             'head', 'title', 'meta', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
@@ -40,7 +52,19 @@ class DatasetGenerator:
                 if not tag.find_all(True, recursive=False):
                     tag.decompose()
 
-        return str(soup)
+        # Remove img tags with base64 encoded src attributes
+        for img_tag in soup.find_all('img', src=True):
+            src_value = img_tag['src']
+            if src_value.startswith('data:image') and "base64" in src_value:
+                # Assume base64 encoding if it starts with 'data:image'
+                img_tag.decompose()
+
+        text = str(soup)
+        for text_node in soup.stripped_strings:
+            if self._is_base64(text_node):
+                text = text.replace(text_node, "")
+
+        return text
 
     def generate_dataset(self) -> Dataset:
         html_json_pairs = self._read_html_json_pairs()
