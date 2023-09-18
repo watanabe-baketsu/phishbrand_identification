@@ -7,7 +7,19 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
+transformers = "^4.33.2"
+datasets = "^2.14.5"
+pillow = "^10.0.1"
+beautifulsoup4 = "^4.12.2"
+torch = "^2.0.1"
+sentence-transformers = "^2.2.2"
 
+
+
+[[tool.poetry.source]]
+name = "torch_cu121"
+url = "https://download.pytorch.org/whl/nightly/cu121"
+priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
