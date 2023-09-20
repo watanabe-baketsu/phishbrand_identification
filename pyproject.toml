@@ -11,14 +11,18 @@ transformers = "^4.33.2"
 datasets = "^2.14.5"
 pillow = "^10.0.1"
 beautifulsoup4 = "^4.12.2"
-torch = "^2.0.1"
 sentence-transformers = "^2.2.2"
+torch = {version = "^2.0.1+cu118", source = "torch_cu118"}
+torchvision = {version = "^0.15.2+cu118", source = "torch_cu118"}
+torchaudio = {version = "^2.0.2+cu118", source = "torch_cu118"}
+langdetect = "^1.0.9"
+protobuf = "^4.24.3"
 
 
 
 [[tool.poetry.source]]
-name = "torch_cu121"
-url = "https://download.pytorch.org/whl/nightly/cu121"
+name = "torch_cu118"
+url = "https://download.pytorch.org/whl/cu118"
 priority = "explicit"
 
 [build-system]
