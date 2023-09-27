@@ -7,13 +7,6 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli", device=device)
 
 
-def get_inference_label(scores):
-    # get max score label
-    max_score = max(scores)
-    max_score_idx = scores.index(max_score)
-    return labels[max_score_idx]
-
-
 if __name__ == "__main__":
     # load dataset
     dataset = load_from_disk("D:/datasets/phishing_identification/phish-text-en", keep_in_memory=True)
@@ -27,7 +20,7 @@ if __name__ == "__main__":
     correct_ans = 0
     for data, out in tqdm(zip(poc_dataset, classifier(poc_dataset["text"], labels, batch_size=batch_size, truncation=True))):
 
-        inference_label = get_inference_label(out["scores"])
+        inference_label = out["labels"][0]
         print(f"model inference : {inference_label} / "
               f"correct : {data['brand']}")
         if inference_label == data["brand"]:
