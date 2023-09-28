@@ -17,6 +17,8 @@ torchvision = {version = "^0.15.2+cu118", source = "torch_cu118"}
 torchaudio = {version = "^2.0.2+cu118", source = "torch_cu118"}
 langdetect = "^1.0.9"
 protobuf = "^4.24.3"
+setfit = "^0.7.0"
+matplotlib = "^3.8.0"
 
 
 

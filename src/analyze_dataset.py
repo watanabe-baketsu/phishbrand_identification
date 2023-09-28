@@ -1,5 +1,6 @@
 import pandas as pd
 from datasets import Dataset, load_from_disk
+from matplotlib import pyplot as plt
 
 
 class DatasetAnalyzer:
@@ -22,10 +23,16 @@ class DatasetAnalyzer:
         self.df = self.df.sort_values(by="percentage", ascending=False)
         return self.df
 
+    def get_upper_count_brands(self, cnt: int) -> list:
+        target_brands = self.df[self.df["count"] > cnt]["label"].tolist()
+        return target_brands
+
 
 if __name__ == "__main__":
-    analyzer = DatasetAnalyzer("D:/datasets/phishing_identification/phish-text-en")
+    analyzer = DatasetAnalyzer("D:/datasets/phishing_identification/phish-full")
     print(analyzer.get_num_labels())
     df = analyzer.get_label_percentage()
-    print(df[df["percentage"] > 0.01])
-    print(sum(df[df["percentage"] > 0.01]["percentage"]))
+    print(df[df["count"] > 10])
+    print(sum(df[df["count"] > 10]["percentage"]))
+    plt.bar(df["label"], df["percentage"])
+    plt.show()

@@ -120,7 +120,7 @@ class DatasetGenerator:
                 with open(info_path, "r", encoding="utf-8", errors="ignore") as f:
                     info = f.read()
                 text = replace_multiple_newlines(self._get_only_text(html))
-                if self._is_english(html):  # onlu english html
+                if self._is_english(html):  # only english html
                     info = ast.literal_eval(info)
                     html = self._shorten_html(html)
                     data = {
@@ -198,11 +198,42 @@ class DatasetGenerator:
 
         return dataset
 
+    def generate_full_dataset(self):
+        html_json_pairs = self._read_html_json_pairs()
+        dataset = []
+        for pair in html_json_pairs:
+            html_path = pair["html_path"]
+            info_path = pair["info_path"]
+            try:
+                with open(html_path, "r", encoding="utf-8", errors="ignore") as f:
+                    html = f.read()
+                with open(info_path, "r", encoding="utf-8", errors="ignore") as f:
+                    info = f.read()
+                text = self._get_only_text(html)
+                if text != "":  # only english html
+                    info = ast.literal_eval(info)
+                    data = {
+                        "text": replace_multiple_newlines(text),
+                        "html": html,
+                        "brand": info.get("brand"),
+                        "url": info.get("url"),
+                        "host": info.get("host"),
+                        "label": self.label,
+                    }
+                    dataset.append(data)
+            except Exception as e:
+                print(e)
+        dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
+
+        dataset.save_to_disk("D:/datasets/phishing_identification/phish-full")
+
+        return dataset
+
 
 if __name__ == "__main__":
 
     phish_base_path = "D:/datasets/phishing_identification/phish_sample_30k"
     phish_label = "phish"
     dataset_generator = DatasetGenerator(phish_base_path, phish_label)
-    phish_dataset = dataset_generator.generate_pickup_html_dataset()
+    phish_dataset = dataset_generator.generate_full_dataset()
     print(phish_dataset.num_rows)
