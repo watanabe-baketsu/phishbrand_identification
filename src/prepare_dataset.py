@@ -1,5 +1,6 @@
 import ast
 import base64
+import json
 import os
 import re
 from typing import Literal
@@ -229,11 +230,38 @@ class DatasetGenerator:
 
         return dataset
 
+    def generate_summarization_training_dataset(self):
+        html_info_pairs = self._read_html_json_pairs()
+        dataset = []
+
+        for pair in html_info_pairs:
+            html_path = pair["html_path"]
+            info_path = pair["info_path"]
+            try:
+                with open(html_path, "r", encoding="utf-8", errors="ignore") as f:
+                    html = f.read()
+                with open(info_path, "r", encoding="utf-8", errors="ignore") as f:
+                    info = f.read()
+                text = self._get_only_text(html)
+                host = info.split("//")[-1].split(".")[:-1]
+                if text != "" and self._is_english(text):  # only english html
+                    data = {
+                        "text": replace_multiple_newlines(text),
+                        "target": host
+                    }
+                    dataset.append(data)
+            except Exception as e:
+                print(e)
+        with open("D:/datasets/phishing_identification/training.jsonl", "w", encoding="utf-8", errors="ignore") as f:
+            for data in dataset:
+                json.dump(data, f)
+                f.write('\n')
+        print("done")
+
 
 if __name__ == "__main__":
 
-    phish_base_path = "D:/datasets/phishing_identification/phish_sample_30k"
-    phish_label = "phish"
+    phish_base_path = "D:/datasets/phishing_identification/benign_sample_30k"
+    phish_label = "benign"
     dataset_generator = DatasetGenerator(phish_base_path, phish_label)
-    phish_dataset = dataset_generator.generate_full_dataset()
-    print(phish_dataset.num_rows)
+    dataset_generator.generate_summarization_training_dataset()

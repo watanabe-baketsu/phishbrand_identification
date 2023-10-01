@@ -51,7 +51,7 @@ def training_model(model: SetFitModel, dataset: Dataset) -> SetFitTrainer:
 
 if __name__ == "__main__":
     model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to("cuda")
-    dataset_path = "D:/datasets/phishing_identification/phish-full"
+    dataset_path = "D:/datasets/phishing_identification/phish-text-en"
     analyzer = DatasetAnalyzer(dataset_path)
     analyzer.get_label_percentage()
     target_brands = analyzer.get_upper_count_brands(10)

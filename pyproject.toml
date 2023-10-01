@@ -19,6 +19,7 @@ langdetect = "^1.0.9"
 protobuf = "^4.24.3"
 setfit = "^0.7.0"
 matplotlib = "^3.8.0"
+peft = "^0.5.0"
 
 
 
