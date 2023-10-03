@@ -18,7 +18,7 @@ def generate_prompt(batch):
         context = f"## Context\n{text[:1500]}\n\n"  # truncate context 1500 characters
         answer = f"## Answer\n{brand}\n\n"
         prompt = question + context + answer
-        result = tokenizer(prompt, padding="max_length", truncation=True, return_tensors="pt")
+        result = tokenizer(prompt, padding=False, truncation=True, max_length=512, return_tensors="pt")
         inputs.append(result["input_ids"].squeeze(0))
         masks.append(result["attention_mask"].squeeze(0))
 
@@ -28,9 +28,9 @@ def generate_prompt(batch):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model_name = "google/bigbird-roberta-base"
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForCausalLM.from_pretrained(model_name, is_decoder=True).to(device)
+    model_name = "facebook/opt-350m"
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+    model = AutoModelForCausalLM.from_pretrained(model_name).to(device)
 
     data_collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
 
@@ -41,7 +41,7 @@ if __name__ == "__main__":
         lora_alpha=16,
         lora_dropout=0.1,
         bias="none",
-        target_modules=["query", "value"]
+        target_modules=["q_proj", "v_proj"]
     )
 
     model = get_peft_model(model, peft_config)
@@ -49,22 +49,21 @@ if __name__ == "__main__":
 
     batch_size = 1
     training_args = TrainingArguments(
-        output_dir=f"../tuned_models/{model_name}",  # output directory
+        output_dir=f"/content/drive/MyDrive/tuned_models/{model_name}",  # output directory
         learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        num_train_epochs=20,
+        num_train_epochs=30,
         evaluation_strategy="epoch",
         save_strategy="epoch",
         lr_scheduler_type="cosine",
     )
 
-    phish_dataset = Dataset.load_from_disk("D:/datasets/phishing_identification/phish-text-en")
+    phish_dataset = Dataset.load_from_disk("/content/drive/MyDrive/datasets/phish-text-en")
     dataset = Dataset.from_list(phish_dataset["phish"])
     dataset = dataset.remove_columns(["url", "host", "label"])
     training = dataset.shuffle(seed=25).select(range(5000)).map(generate_prompt, batched=True, batch_size=batch_size)
     validation = dataset.shuffle(seed=25).select(range(5000, 6000)).map(generate_prompt, batched=True, batch_size=batch_size)
-    test = dataset.shuffle(seed=25).select(range(6000, 7000)).map(generate_prompt, batched=True, batch_size=batch_size)
 
     trainer = Trainer(
         model=model,
@@ -74,7 +73,9 @@ if __name__ == "__main__":
         tokenizer=tokenizer,
         data_collator=data_collator
     )
+    model.config.use_cache = False
     trainer.train()
+    model.config.use_cache = True
 
-    trainer.model.save_pretrained(save_directory="../tuned_models")
+    trainer.model.save_pretrained(save_directory="/content/drive/MyDrive/tuned_models")
 
