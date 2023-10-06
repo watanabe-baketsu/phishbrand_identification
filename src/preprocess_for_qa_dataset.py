@@ -21,9 +21,9 @@ def get_brand_token(batch):
         passage_embedding = st_model.encode(passage)
         query_embedding = st_model.encode(batch["brand"])
         brand_tokens = passage[util.dot_score(query_embedding, passage_embedding).argmax()]
-        identified_tokens.append(brand_tokens)
+        identified_tokens.append([brand_tokens])
         start_position = passage.index(brand_tokens)
-        start_positions.append(start_position)
+        start_positions.append([start_position])
         similarity = util.dot_score(query_embedding, passage_embedding).max()
         similarities.append(similarity)
     return {"brand_tokens": identified_tokens, "start_position": start_positions, "similarity": similarities}
