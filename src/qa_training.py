@@ -91,8 +91,7 @@ if __name__ == "__main__":
         args=args,
         train_dataset=train_dataset,
         eval_dataset=validation_dataset,
-        tokenizer=tokenizer,
-        compute_metrics="f1"
+        tokenizer=tokenizer
     )
     trainer.train()
 
