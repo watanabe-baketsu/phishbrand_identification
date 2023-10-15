@@ -6,14 +6,19 @@ from transformers import AutoTokenizer
 
 
 def tokenize(batch):
-    return tokenizer(batch["html"], padding="max_length", truncation=True, return_tensors="pt")
+    return tokenizer(
+        batch["html"],
+        padding="max_length",
+        truncation=True,
+        return_tensors="pt"
+    )
 
 
 def get_brand_token(batch):
     identified_tokens = []
     start_positions = []
     similarities = []
-    for input_ids in batch["input_ids"]:
+    for j, input_ids in enumerate(batch["input_ids"]):
         passage = []
         for i in range(len(input_ids) - 2):
             decoded_tokens = tokenizer.decode(input_ids[i:i + 3], skip_special_tokens=True)
@@ -22,7 +27,9 @@ def get_brand_token(batch):
         query_embedding = st_model.encode(batch["brand"])
         brand_tokens = passage[util.dot_score(query_embedding, passage_embedding).argmax()]
         identified_tokens.append([brand_tokens])
-        start_position = passage.index(brand_tokens)
+        start_position = batch["html"][j].find(brand_tokens)
+        if start_position == -1:
+            start_position = 0
         start_positions.append([start_position])
         similarity = util.dot_score(query_embedding, passage_embedding).max()
         similarities.append(similarity)
@@ -39,14 +46,14 @@ def delete_low_similarity_samples(data: Dataset) -> Dataset:
 
 def save_sample_dataset_jsonl(data: Dataset):
     cnt = 0
-    with open("D:/datasets/phishing_identification/phish-html-en-qa-sample.jsonl", "w", encoding="utf-8", errors='ignore') as f:
+    with open("D:/datasets/phishing_identification/phish-html-en-qa-long.jsonl", "w", encoding="utf-8", errors='ignore') as f:
         for d in data:
-            chunk = {"html": d["html"], "brand_tokens": d["brand_tokens"],
+            chunk = {"context": d["html"], "answer_text": d["brand_tokens"],
                      "start_position": d["start_position"], "question": "What is the name of the website's brand?"}
             json.dump(chunk, f)
             f.write("\n")
             cnt += 1
-            if cnt == 2800:
+            if cnt == 10000:
                 break
 
 

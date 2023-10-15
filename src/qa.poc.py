@@ -37,18 +37,20 @@ def get_similar_brand(batch):
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # load dataset
-    dataset = load_from_disk("D:/datasets/phishing_identification/phish-html-en-qa", keep_in_memory=True)
+    base_path = "D:/datasets/phishing_identification"
+    dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,11000))
     # generate target brand list
     brand_list = list(set(dataset["brand"]))
+    model_name = "baketsu/autotrain-pro-test-95073146277"
 
-    tokenizer = AutoTokenizer.from_pretrained("baketsu/autotrain-test-93525145868")
-    model = AutoModelForQuestionAnswering.from_pretrained("baketsu/autotrain-test-93525145868").to(device)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForQuestionAnswering.from_pretrained(model_name).to(device)
 
     # calculate similarity between two brand strings
     st_model = SentenceTransformer('all-MiniLM-L6-v2')
     passage_embedding = st_model.encode(brand_list)
 
-    poc_dataset = dataset.shuffle(seed=25).select(range(100))
+    poc_dataset = dataset.shuffle(seed=25).select(range(1000))
     poc_dataset = poc_dataset.map(inference_brand, batched=True, batch_size=5)
     poc_dataset = poc_dataset.map(get_similar_brand, batched=True, batch_size=20)
 
@@ -60,4 +62,4 @@ if __name__ == "__main__":
               f"identified brand : {data['identified']} / "
               f"correct : {data['brand']}")
 
-    print(f"accuracy : {correct_ans / 100}")
+    print(f"accuracy : {correct_ans / 1000}")
