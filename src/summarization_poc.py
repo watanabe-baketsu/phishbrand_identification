@@ -64,15 +64,14 @@ if __name__ == "__main__":
     # load dataset
     dataset = load_from_disk("D:/datasets/phishing_identification/phish-html-en-qa", keep_in_memory=True)
     # generate target brand list
-    phish = Dataset.from_list(dataset["phish"])
-    brand_list = list(set(phish["brand"]))
+    brand_list = list(set(dataset["brand"]))
 
-    poc_dataset = phish.shuffle(seed=25).select(range(100))
+    poc_dataset = dataset.select(range(10000,11000))
 
     # training_dataset = phish.shuffle(seed=25).select(range(100, 3000))
     # generate_training_dataset(training_dataset)
 
-    model_name = "baketsu/autotrain-phishing_identification-92328144712"
+    model_name = "baketsu/autotrain-bart-summarization-95434146369"
     brand_identifier = BrandIdentifier(brand_list, model_name)
 
     batch_size = 2
@@ -87,4 +86,4 @@ if __name__ == "__main__":
         if data["identified"] == data["brand"]:
             correct_ans += 1
 
-    print(f"accuracy : {correct_ans / 100}")
+    print(f"accuracy : {correct_ans / 1000}")

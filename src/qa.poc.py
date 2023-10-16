@@ -41,7 +41,7 @@ if __name__ == "__main__":
     dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,14000))
     # generate target brand list
     brand_list = list(set(dataset["brand"]))
-    model_name = "baketsu/autotrain-distilbert-base-uncased-distilled-squad-95223146310"
+    model_name = "baketsu/autotrain-xlm-roberta-base-qa-95197146303"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to(device)
