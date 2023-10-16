@@ -38,10 +38,10 @@ if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     # load dataset
     base_path = "D:/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,11000))
+    dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,14000))
     # generate target brand list
     brand_list = list(set(dataset["brand"]))
-    model_name = "baketsu/autotrain-pro-test-95073146277"
+    model_name = "baketsu/autotrain-distilbert-base-uncased-distilled-squad-95223146310"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to(device)
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     st_model = SentenceTransformer('all-MiniLM-L6-v2')
     passage_embedding = st_model.encode(brand_list)
 
-    poc_dataset = dataset.shuffle(seed=25).select(range(1000))
+    poc_dataset = dataset.shuffle(seed=25).select(range(4000))
     poc_dataset = poc_dataset.map(inference_brand, batched=True, batch_size=5)
     poc_dataset = poc_dataset.map(get_similar_brand, batched=True, batch_size=20)
 
@@ -58,8 +58,8 @@ if __name__ == "__main__":
     for data in poc_dataset:
         if data["identified"] == data["brand"]:
             correct_ans += 1
-        print(f"model inference : {data['inference']} / "
-              f"identified brand : {data['identified']} / "
-              f"correct : {data['brand']}")
-
-    print(f"accuracy : {correct_ans / 1000}")
+        # print(f"model inference : {data['inference']} / "
+        #       f"identified brand : {data['identified']} / "
+        #       f"correct : {data['brand']}")
+    print(f"the number of Brand List : {len(brand_list)}")
+    print(f"accuracy : {correct_ans / 4000}")

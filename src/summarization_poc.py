@@ -17,9 +17,9 @@ class BrandIdentifier:
         self.passage_embedding = self.st_model.encode(self.brand_list)
 
     def inference_brand(self, batch):
-        inputs = self.tokenizer(batch["text"], padding=True, truncation=True, return_tensors="pt")
+        inputs = self.tokenizer(batch["html"], padding=True, truncation=True, return_tensors="pt")
 
-        decoder_input_ids = self.tokenizer(["<pad>"] * len(batch["text"]), return_tensors="pt").input_ids
+        decoder_input_ids = self.tokenizer(["<pad>"] * len(batch["html"]), return_tensors="pt").input_ids
 
         with torch.no_grad():
             outputs = self.model(input_ids=inputs.input_ids.to(self.device),
@@ -42,17 +42,27 @@ class BrandIdentifier:
         return {"identified": identified}
 
 
-def generate_training_dataset(dataset: Dataset):
-    with open("D:/datasets/phishing_identification/training.jsonl", "w", encoding="utf-8", errors='ignore') as f:
-        for data in dataset:
-            chunk = {"text": data["text"], "target": data["brand"]}
-            json.dump(chunk, f)
+def generate_training_dataset():
+    with open("D:/datasets/phishing_identification/phish-html-en-qa-long.jsonl", "r", encoding="utf-8", errors='ignore') as f:
+        contents = f.readlines()
+    cnt = 0
+    with open("D:/datasets/phishing_identification/phish-html-en-summarization-long.jsonl", "w", encoding="utf-8", errors='ignore') as f:
+        for content in contents:
+            chunk = json.loads(content)
+            data = {
+                "text": chunk["context"],
+                "target": chunk["answer_text"][0],
+            }
+            json.dump(data, f)
             f.write("\n")
+            cnt += 1
+            if cnt == 5000:
+                break
 
 
 if __name__ == "__main__":
     # load dataset
-    dataset = load_from_disk("D:/datasets/phishing_identification/phish-text-en", keep_in_memory=True)
+    dataset = load_from_disk("D:/datasets/phishing_identification/phish-html-en-qa", keep_in_memory=True)
     # generate target brand list
     phish = Dataset.from_list(dataset["phish"])
     brand_list = list(set(phish["brand"]))

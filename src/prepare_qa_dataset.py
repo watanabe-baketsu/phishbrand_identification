@@ -1,4 +1,5 @@
 import json
+import uuid
 
 from datasets import Dataset, load_from_disk
 from sentence_transformers import SentenceTransformer, util
@@ -57,6 +58,20 @@ def save_sample_dataset_jsonl(data: Dataset):
                 break
 
 
+def create_squad_like_dataset(data: Dataset) -> Dataset:
+    new_data = []
+    for d in data:
+        chunk = {
+            "id": str(uuid.uuid4()),
+            "context": d["html"],
+            "answers": {"answer_start": d["start_position"], "text": d["brand_tokens"]},
+            "question": "What is the name of the website's brand?",
+            "title": d["brand"]
+        }
+        new_data.append(chunk)
+    return Dataset.from_list(new_data)
+
+
 if __name__ == "__main__":
     # load dataset
     dataset = load_from_disk("D:/datasets/phishing_identification/phish-html-en")
@@ -82,9 +97,4 @@ if __name__ == "__main__":
     dataset.save_to_disk("D:/datasets/phishing_identification/phish-html-en-qa")
 
     for i in range(10):
-        print(f"#### sample{i} : {dataset[i]['brand']}")
-        print(dataset[i]["brand_tokens"])
-        print(dataset[i]["start_position"])
-        print(dataset[i]["similarity"])
-
-
+        print(f"#### sample{i} : {dataset[i]['title']}")
