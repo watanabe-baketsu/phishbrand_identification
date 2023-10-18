@@ -8,7 +8,7 @@ def inference_brand(batch):
     question = "What is the name of the website's brand?"
     answers = []
 
-    for html in batch["html"]:
+    for html in batch["context"]:
         inputs = tokenizer(question, html, return_tensors="pt", truncation=True)
 
         with torch.no_grad():
@@ -40,8 +40,8 @@ if __name__ == "__main__":
     base_path = "D:/datasets/phishing_identification"
     dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,14000))
     # generate target brand list
-    brand_list = list(set(dataset["brand"]))
-    model_name = "baketsu/autotrain-xlm-roberta-base-qa-95197146303"
+    brand_list = list(set(dataset["title"]))
+    model_name = "D:/tuned_models/roberta-base-squad2/checkpoint-5000"
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to(device)
@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     correct_ans = 0
     for data in poc_dataset:
-        if data["identified"] == data["brand"]:
+        if data["identified"] == data["title"]:
             correct_ans += 1
         # print(f"model inference : {data['inference']} / "
         #       f"identified brand : {data['identified']} / "

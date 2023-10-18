@@ -70,7 +70,7 @@ if __name__ == "__main__":
     print(len(dataset["test"]))
 
     training_args = TrainingArguments(
-        output_dir=f"./tuned_models/{model_name.split('/')[-1]}",
+        output_dir=f"D:/tuned_models/{model_name.split('/')[-1]}",
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,
