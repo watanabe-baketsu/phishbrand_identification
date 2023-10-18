@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 
 class DatasetAnalyzer:
-    def __init__(self, dataset_path: str) -> Dataset:
+    def __init__(self, dataset_path: str):
         self.dataset = load_from_disk(dataset_path, keep_in_memory=True)
         self.labels = list(set(self.dataset["title"]))
         self.df = pd.DataFrame()
