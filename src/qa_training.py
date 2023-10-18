@@ -77,7 +77,6 @@ if __name__ == "__main__":
         per_device_eval_batch_size=16,
         num_train_epochs=20,
         weight_decay=0.01,
-        push_to_hub=True,
     )
 
     trainer = Trainer(

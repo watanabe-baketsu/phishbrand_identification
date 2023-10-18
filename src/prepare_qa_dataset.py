@@ -93,6 +93,7 @@ if __name__ == "__main__":
     print(dataset.column_names)
     dataset.remove_columns(["host", "url", "label"])
     save_sample_dataset_jsonl(dataset)
+    dataset = create_squad_like_dataset(dataset)
 
     dataset.save_to_disk("D:/datasets/phishing_identification/phish-html-en-qa")
 
