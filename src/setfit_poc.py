@@ -1,60 +1,58 @@
+import torch
 from datasets import Dataset, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
 from setfit import SetFitModel, SetFitTrainer
 
-from analyze_dataset import DatasetAnalyzer
 
-
-def load_dataset(dataset_path: str) -> Dataset:
-    dataset = load_from_disk(dataset_path)
-    dataset = Dataset.from_list(dataset["phish"])
+def load_dataset(path: str) -> dict:
+    qa_dataset = load_from_disk(path)
+    training = qa_dataset.select(range(10000))
+    testing = qa_dataset.select(range(10000, 14000))
+    target_brands = list(set(testing["title"]))
 
     def brand_edit(batch):
-        return {"brand": [brand if brand in target_brands else "other" for brand in batch["brand"]]}
+        return {"title": [title if title in target_brands else "other" for title in batch["title"]]}
 
-    dataset = dataset.map(brand_edit, batched=True)
+    training = training.map(brand_edit, batched=True)
+    testing = testing.map(brand_edit, batched=True)
 
-    labels = list(set(dataset["brand"]))
+    labels = list(set(testing["title"]))
+    labels = labels + ["other"]
 
     def brand_to_idx(batch):
-        return {"brand_idx": [labels.index(brand) for brand in batch["brand"]]}
+        return {"brand_idx": [labels.index(title) for title in batch["title"]]}
 
-    dataset = dataset.map(brand_to_idx, batched=True)
+    training = training.map(brand_to_idx, batched=True)
+    testing = testing.map(brand_to_idx, batched=True)
 
-    # select sample for training  dataset
-    trainings = Dataset.from_list(dataset).shuffle(seed=25).select(range(4000))
-    # select sample for validation dataset
-    validations = Dataset.from_list(dataset).shuffle(seed=25).select(range(4000, 5000))
+    train_val_dataset = {"train": training, "validation": testing}
 
-    dataset = {"train": trainings, "validation": validations}
-    return dataset
+    return train_val_dataset
 
 
-def training_model(model: SetFitModel, dataset: Dataset) -> SetFitTrainer:
-    trainer = SetFitTrainer(
-        model=model,
-        train_dataset=Dataset.from_list(dataset["train"]),
-        eval_dataset=Dataset.from_list(dataset["validation"]),
+def training_model(st_model: SetFitModel, train_val_dataset: dict) -> SetFitTrainer:
+    st_trainer = SetFitTrainer(
+        model=st_model,
+        train_dataset=Dataset.from_list(train_val_dataset["train"]),
+        eval_dataset=Dataset.from_list(train_val_dataset["validation"]),
         loss_class=CosineSimilarityLoss,
         batch_size=16,
         num_iterations=20,
         num_epochs=1,
         metric="accuracy",
-        column_mapping={"text": "text", "brand_idx": "label"},
+        column_mapping={"context": "text", "brand_idx": "label"},
     )
-    trainer.train()
-    metrics = trainer.evaluate()
+    st_trainer.train()
+    metrics = st_trainer.evaluate()
 
     print(metrics)
-    return trainer
+    return st_trainer
 
 
 if __name__ == "__main__":
-    model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to("cuda")
-    dataset_path = "D:/datasets/phishing_identification/phish-text-en"
-    analyzer = DatasetAnalyzer(dataset_path)
-    analyzer.get_label_percentage()
-    target_brands = analyzer.get_upper_count_brands(10)
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to(device)
+    dataset_path = "D:/datasets/phishing_identification/phish-html-en-qa"
     dataset = load_dataset(dataset_path)
 
     trainer = training_model(model, dataset)

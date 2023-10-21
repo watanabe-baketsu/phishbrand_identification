@@ -36,9 +36,10 @@ def get_similar_brand(batch):
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    validation_length = 4000
     # load dataset
     base_path = "D:/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/phish-html-en-qa", keep_in_memory=True).select(range(10000,14000))
+    dataset = load_from_disk(f"{base_path}/phish-html-en-qa").select(range(10000,10000+validation_length))
     # generate target brand list
     brand_list = list(set(dataset["title"]))
     model_name = "D:/tuned_models/roberta-base-squad2/checkpoint-5000"
@@ -50,16 +51,15 @@ if __name__ == "__main__":
     st_model = SentenceTransformer('all-MiniLM-L6-v2')
     passage_embedding = st_model.encode(brand_list)
 
-    poc_dataset = dataset.shuffle(seed=25).select(range(4000))
-    poc_dataset = poc_dataset.map(inference_brand, batched=True, batch_size=5)
-    poc_dataset = poc_dataset.map(get_similar_brand, batched=True, batch_size=20)
+    dataset = dataset.map(inference_brand, batched=True, batch_size=5)
+    dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
 
     correct_ans = 0
-    for data in poc_dataset:
+    for data in dataset:
         if data["identified"] == data["title"]:
             correct_ans += 1
         # print(f"model inference : {data['inference']} / "
         #       f"identified brand : {data['identified']} / "
         #       f"correct : {data['brand']}")
     print(f"the number of Brand List : {len(brand_list)}")
-    print(f"accuracy : {correct_ans / 4000}")
+    print(f"accuracy : {correct_ans / validation_length}")
