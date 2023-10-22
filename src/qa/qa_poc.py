@@ -1,7 +1,8 @@
-from datasets import load_from_disk, Dataset
+import pandas as pd
+import torch
+from datasets import load_from_disk
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from sentence_transformers import SentenceTransformer, util
-import torch
 
 
 def inference_brand(batch):
@@ -54,12 +55,25 @@ if __name__ == "__main__":
     dataset = dataset.map(inference_brand, batched=True, batch_size=5)
     dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
 
+    results = []
     correct_ans = 0
     for data in dataset:
         if data["identified"] == data["title"]:
             correct_ans += 1
-        # print(f"model inference : {data['inference']} / "
-        #       f"identified brand : {data['identified']} / "
-        #       f"correct : {data['brand']}")
+            is_correct = 1
+        else:
+            is_correct = 0
+
+        # For result analysis
+        results.append({
+            "inference": data["inference"],
+            "identified": data["identified"],
+            "answer": data["title"],
+            "correct": is_correct,
+            "html": data["context"]
+        })
+    result_df = pd.DataFrame(results)
+    result_df.to_csv("D:/datasets/phishing_identification/qa_validation_result.csv", index=False)
+
     print(f"the number of Brand List : {len(brand_list)}")
     print(f"accuracy : {correct_ans / validation_length}")
