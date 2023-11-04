@@ -28,11 +28,17 @@ def inference_brand(batch):
 
 def get_similar_brand(batch):
     identified_brands = []
+    similarity = []
     for inference in batch["inference"]:
         query_embedding = st_model.encode(inference)
-        identified_brands.append(brand_list[util.dot_score(query_embedding, passage_embedding).argmax()])
+        sim = util.dot_score(query_embedding, passage_embedding).max()
+        similarity.append(sim)
+        if sim < 0.5:
+            identified_brands.append("other")
+        else:
+            identified_brands.append(brand_list[util.dot_score(query_embedding, passage_embedding).argmax()])
 
-    return {"identified": identified_brands}
+    return {"identified": identified_brands, "similarity": similarity}
 
 
 if __name__ == "__main__":
@@ -63,11 +69,13 @@ if __name__ == "__main__":
             is_correct = 1
         else:
             is_correct = 0
+        # print(f"answer : {data['title']} / identified : {data['identified']} / similarity : {data['similarity']}")
 
         # For result analysis
         results.append({
             "inference": data["inference"],
             "identified": data["identified"],
+            "similarity": data["similarity"],
             "answer": data["title"],
             "correct": is_correct,
             "html": data["context"]

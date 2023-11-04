@@ -105,8 +105,8 @@ if __name__ == "__main__":
     print(f"accuracy : {analyzer.get_accuracy()}")
     metrics_df = analyzer.get_metrics_by_brand()
     print(metrics_df)
-    # metrics_df.to_csv("D:/datasets/phishing_identification/qa_results/qa_validation_result_metrics.csv", index=False)
-    # analyzer.get_summary_plot(metrics_df)
+    metrics_df.to_csv("D:/datasets/phishing_identification/qa_results/qa_validation_result_metrics.csv", index=False)
+    analyzer.get_summary_plot(metrics_df)
     low_metrics_df = analyzer.get_low_metrics_brand(metrics_df, 10, 0.8)
     print(low_metrics_df)
 
