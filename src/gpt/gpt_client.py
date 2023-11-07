@@ -24,13 +24,13 @@ def request_gpt(html_code: str, model_name: str = "gpt-3.5-turbo-1106") -> str:
         temperature=1.0,
         max_tokens=256,
     )
-    brand_name = response.choices[0].message.content.strip()
+    inference = response.choices[0].message.content.strip()
 
-    return brand_name
+    return inference
 
 
 if __name__ == "__main__":
-    model_name = "gpt-4-1106-preview"
+    model = "gpt-4-1106-preview"
 
     validation_length = 4000
     # load dataset
@@ -38,6 +38,6 @@ if __name__ == "__main__":
     dataset = load_from_disk(f"{base_path}/phish-html-en-qa").select(range(10000, 10000 + validation_length))
 
     # for testing
-    brand = request_gpt(dataset[0]["context"], model_name)
+    brand = request_gpt(dataset[0]["context"], model)
     print(brand)
 
