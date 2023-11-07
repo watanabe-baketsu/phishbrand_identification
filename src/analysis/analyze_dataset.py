@@ -29,11 +29,11 @@ class DatasetAnalyzer:
 
 if __name__ == "__main__":
     analyzer = DatasetAnalyzer("D:/datasets/phishing_identification/phish-html-en-qa")
-    analyzer.select_specified_range_samples(10000, 14000)
+    analyzer.select_specified_range_samples(0, 10000)
     print(analyzer.get_num_labels())
     df = analyzer.get_label_percentage()
     # save to csv
-    df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count.csv", index=False)
+    df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
     pd.set_option('display.max_rows', 200)
     print(df[df["count"] >= 1])
     fig, ax1 = plt.subplots()

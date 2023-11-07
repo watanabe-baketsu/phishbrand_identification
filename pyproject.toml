@@ -20,6 +20,8 @@ protobuf = "^4.24.3"
 setfit = "^0.7.0"
 matplotlib = "^3.8.0"
 peft = "^0.5.0"
+openai = "^1.1.1"
+python-dotenv = "^1.0.0"
 
 
 
