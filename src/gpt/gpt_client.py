@@ -39,8 +39,8 @@ class GPTClient:
             ],
             temperature=1.0,
             max_tokens=256,
+            timeout=60,
         )
-        print(response)
         return response
 
     def request_manager(self, html_code: str, model_name: str = "gpt-3.5-turbo-1106") -> str:
@@ -52,10 +52,12 @@ class GPTClient:
         except APIError as api_error:
             local_e = str(api_error)
             if str(api_error).startswith("Error code: 429"):
+                cnt = 0
                 while local_e.startswith("Error code: 429"):
+                    cnt += 1
                     try:
-                        print("Too many requests, sleep 100 seconds...")
-                        time.sleep(100)
+                        print("Too many requests, sleep 120 seconds...")
+                        time.sleep(120)
                         print("Retry request...")
                         response = self._request_gpt(html_code, model_name)
                         contents = response.choices[0].message.content.strip()
@@ -63,7 +65,8 @@ class GPTClient:
                         return inference_brand
                     except APIError as err:
                         local_e = str(err)
-                        time.sleep(20)
+                        if cnt == 5:
+                            return "other"
             elif str(api_error).startswith("Error code: 400"):
                 while local_e.startswith("Error code: 400"):
                     print("The request is too large")
@@ -76,8 +79,9 @@ class GPTClient:
                         return inference_brand
                     except APIError as err:
                         local_e = str(err)
-                        time.sleep(20)
+                        time.sleep(5)
             else:
+                print(api_error)
                 raise api_error
         except Exception as error:
             print(error)
@@ -108,7 +112,7 @@ def load_checkpoint_df(checkpoint_path: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    model = "gpt-3.5-turbo-1106"  # "gpt-4-1106-preview"
+    model = "gpt-4-1106-preview"
     gpt_client = GPTClient()
 
     st_model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -134,14 +138,17 @@ if __name__ == "__main__":
     targets = pd.concat([targets_null, targets_empty], ignore_index=True)
     count = 0
     for _, sample in targets.iterrows():
+        if len(sample["context"]) > 120000:
+            sample["context"] = sample["context"][:120000]
         try:
             inference = gpt_client.request_manager(sample["context"], model)
             checkpoint_df.loc[checkpoint_df["id"] == sample["id"], "inference"] = inference
+            checkpoint_df.to_csv(f"{base_path}/gpt_results/{model}-result.csv", index=False)
         except Exception as e:
             print(e)
             checkpoint_df.to_csv(f"{base_path}/gpt_results/{model}-result.csv", index=False)
 
-        time.sleep(20)
+        time.sleep(5)
         count += 1
         print(f"\r{count} / {len(targets)}", end="")
 
