@@ -56,8 +56,8 @@ class GPTClient:
                 while local_e.startswith("Error code: 429"):
                     cnt += 1
                     try:
-                        print("Too many requests, sleep 120 seconds...")
-                        time.sleep(120)
+                        print("Too many requests, sleep 150 seconds...")
+                        time.sleep(150)
                         print("Retry request...")
                         response = self._request_gpt(html_code, model_name)
                         contents = response.choices[0].message.content.strip()
@@ -65,7 +65,9 @@ class GPTClient:
                         return inference_brand
                     except APIError as err:
                         local_e = str(err)
-                        if cnt == 5:
+                        if "The input or output tokens must be reduced in order to run successfully." in local_e:
+                            html_code = html_code[:int(len(html_code)*0.9)]
+                        elif cnt == 5:
                             return "other"
             elif str(api_error).startswith("Error code: 400"):
                 while local_e.startswith("Error code: 400"):
@@ -79,7 +81,7 @@ class GPTClient:
                         return inference_brand
                     except APIError as err:
                         local_e = str(err)
-                        time.sleep(5)
+                        time.sleep(15)
             else:
                 print(api_error)
                 raise api_error
@@ -148,7 +150,7 @@ if __name__ == "__main__":
             print(e)
             checkpoint_df.to_csv(f"{base_path}/gpt_results/{model}-result.csv", index=False)
 
-        time.sleep(5)
+        time.sleep(15)
         count += 1
         print(f"\r{count} / {len(targets)}", end="")
 
