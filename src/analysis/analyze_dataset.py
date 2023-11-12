@@ -1,4 +1,5 @@
 import pandas as pd
+from collections import Counter
 from datasets import Dataset, load_from_disk
 from matplotlib import pyplot as plt
 
@@ -26,39 +27,68 @@ class DatasetAnalyzer:
         self.df = self.df.sort_values(by="percentage", ascending=False)
         return self.df
 
+    def display_answer_start_mapping(self):
+        answer_start_list = []
+        for data in self.dataset:
+            answer_start_list.append(data["answers"]["answer_start"][0])
+        fig, ax = plt.subplots()
+        points = [answer_start_list]
+
+        bp = ax.boxplot(points)
+        ax.set_xticklabels(['answer start index'])
+        plt.grid()
+        plt.show()
+
+        # bar plot
+        range_size = 100
+        counts = Counter((x // range_size) * range_size for x in answer_start_list)
+
+        sorted_counts = sorted(counts.items())
+        ranges = [str(x[0]) + "-" + str(x[0] + range_size) for x in sorted_counts]
+        counts = [x[1] for x in sorted_counts]
+
+        plt.bar(ranges, counts)
+        plt.xlabel('Range')
+        plt.ylabel('Count')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.show()
+
 
 if __name__ == "__main__":
     analyzer = DatasetAnalyzer("D:/datasets/phishing_identification/phish-html-en-qa")
-    analyzer.select_specified_range_samples(0, 10000)
+    analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
-    df = analyzer.get_label_percentage()
+    analyzer.display_answer_start_mapping()
+
+    # df = analyzer.get_label_percentage()
     # save to csv
-    df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
-    pd.set_option('display.max_rows', 200)
-    print(df[df["count"] >= 1])
-    fig, ax1 = plt.subplots()
-
-    # 棒グラフ (要素数)
-    ax1.bar(df["label"], df["count"], color='b', alpha=0.6, label='Counts')
-    ax1.set_ylabel('Counts', color='b')
-    ax1.tick_params('y', colors='b')
-    ax1.set_xticks([])
-
-    percentages = df["percentage"].tolist()
-    sum_percentages = []
-    sum_percentage = 0
-    for percentage in percentages:
-        sum_percentage += percentage
-        sum_percentages.append(sum_percentage)
-    # convert list to pandas series
-    sum_percentages = pd.Series(sum_percentages)
-
-    ax2 = ax1.twinx()
-    ax2.plot(df["label"], sum_percentages, color='r', marker='o', label='Percentage')
-    ax2.set_ylabel('Percentage (%)', color='r')
-    ax2.tick_params('y', colors='r')
-
-    plt.title("Counts and Percentages of Labels")
-    plt.show()
-    plt.bar(df["label"], df["percentage"], )
-    plt.show()
+    # df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
+    # pd.set_option('display.max_rows', 200)
+    # print(df[df["count"] >= 1])
+    # fig, ax1 = plt.subplots()
+    #
+    # # 棒グラフ (要素数)
+    # ax1.bar(df["label"], df["count"], color='b', alpha=0.6, label='Counts')
+    # ax1.set_ylabel('Counts', color='b')
+    # ax1.tick_params('y', colors='b')
+    # ax1.set_xticks([])
+    #
+    # percentages = df["percentage"].tolist()
+    # sum_percentages = []
+    # sum_percentage = 0
+    # for percentage in percentages:
+    #     sum_percentage += percentage
+    #     sum_percentages.append(sum_percentage)
+    # # convert list to pandas series
+    # sum_percentages = pd.Series(sum_percentages)
+    #
+    # ax2 = ax1.twinx()
+    # ax2.plot(df["label"], sum_percentages, color='r', marker='o', label='Percentage')
+    # ax2.set_ylabel('Percentage (%)', color='r')
+    # ax2.tick_params('y', colors='r')
+    #
+    # plt.title("Counts and Percentages of Labels")
+    # plt.show()
+    # plt.bar(df["label"], df["percentage"], )
+    # plt.show()
