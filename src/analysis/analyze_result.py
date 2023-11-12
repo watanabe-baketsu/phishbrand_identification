@@ -1,10 +1,15 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from datasets import load_from_disk
 
 
 class ResultAnalyzer:
-    def __init__(self, result_path: str):
-        self.df = pd.read_csv(result_path)
+    def __init__(self, result_path: str, mode="csv"):
+        if mode == "csv":
+            self.df = pd.read_csv(result_path)
+        else:
+            results = load_from_disk(result_path)
+            self.df = results.to_pandas()
 
     def get_accuracy(self) -> float:
         return self.df["correct"].sum() / self.df.shape[0]
