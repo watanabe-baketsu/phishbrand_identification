@@ -14,14 +14,15 @@ class ResultAnalyzer:
     def get_accuracy(self) -> float:
         return self.df["correct"].sum() / self.df.shape[0]
 
-    def get_metrics_by_brand(self) -> pd.DataFrame:
+    @staticmethod
+    def calc_metrics_by_brand(t_df) -> pd.DataFrame:
         # calculate recall by brand
-        df_recall = self.df.groupby("answer").agg({"correct": ["sum", "count"]})
+        df_recall = t_df.groupby("answer").agg({"correct": ["sum", "count"]})
         df_recall.columns = ["correct_sum", "count"]
         df_recall["recall"] = df_recall["correct_sum"] / df_recall["count"]
         df_recall = df_recall.drop(["correct_sum"], axis=1)
         # calculate precision by brand
-        df_precision = self.df.groupby("identified").agg({"correct": "sum", "identified": "count"})
+        df_precision = t_df.groupby("identified").agg({"correct": "sum", "identified": "count"})
         df_precision.columns = ["correct_sum", "identified_count"]
         df_precision["precision"] = df_precision["correct_sum"] / df_precision["identified_count"]
         df_precision = df_precision.drop(["correct_sum", "identified_count"], axis=1)
@@ -101,31 +102,63 @@ class ResultAnalyzer:
         df = df[df["correct"] == 1]
         return df
 
+    def get_specified_brands_metrics(self, targets: list) -> pd.DataFrame:
+        df = self.df[self.df["answer"].isin(targets)]
+        df = self.calc_metrics_by_brand(df)
+        return df
+
+
+def print_save_specified_samples(df: pd.DataFrame, file_name: str):
+    print(f"inference : {df['inference'].tolist()[0]}")
+    print(f"identified : {df['identified'].tolist()[0]}")
+    with open(f"{base_path}/{file_name}", "w", encoding="utf-8") as f:
+        f.write(df["html"].tolist()[0])
+    print("")
+
+
+def analyze_only_eval_label_samples(analyzer: ResultAnalyzer):
+    only_test_labels = ['First National Bank SA', 'Credit Agricole S.A.',
+                        'Equa bank', 'Tesco Personal Finance PLC',
+                        'IBC Bank', 'NedBank Limited', 'Gumtree',
+                        'Juno Online Services', 'Monmouth Telecom', 'ADP, LLC']
+    only_df = analyzer.get_specified_brands_metrics(only_test_labels)
+    print(only_df)
+
+    print("### unseen label correct sammple ###")
+    correct_df = analyzer.get_specified_brand_correct_samples("Monmouth Telecom")
+    print_save_specified_samples(correct_df, "only_eval_label_correct_sample.txt")
+
+    print("### unseen label incorrect sammple ###")
+    incorrect_df = analyzer.get_specified_brand_incorrect_samples("Credit Agricole S.A.")
+    print_save_specified_samples(incorrect_df, "only_eval_label_incorrect_sample.txt")
+
+
+def analyze_low_metric_samples(analyzer: ResultAnalyzer):
+    low_metrics_df = analyzer.get_low_metrics_brand(analyzer.df, 10, 0.8)
+    print(low_metrics_df)
+
+    print("### low metric correct sammple ###")
+    correct_df = analyzer.get_specified_brand_correct_samples("Alaska USA Federal Credit Union")
+    print_save_specified_samples(correct_df, "low_metric_correct_sample.txt")
+
+    print("### low metric incorrect sammple ###")
+    incorrect_df = analyzer.get_specified_brand_incorrect_samples("Alaska USA Federal Credit Union")
+    print_save_specified_samples(incorrect_df, "low_metric_incorrect_sample.txt")
+
 
 if __name__ == "__main__":
-    path = "D:/datasets/phishing_identification/qa_results/qa_validation_result.csv"
+    base_path = "D:/datasets/phishing_identification/qa_results"
+    path = f"{base_path}/qa_validation_result.csv"
     analyzer = ResultAnalyzer(path)
     print(analyzer.df.columns)
 
     print(f"accuracy : {analyzer.get_accuracy()}")
-    metrics_df = analyzer.get_metrics_by_brand()
+    metrics_df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(metrics_df)
-    metrics_df.to_csv("D:/datasets/phishing_identification/qa_results/qa_validation_result_metrics.csv", index=False)
-    analyzer.get_summary_plot(metrics_df)
-    low_metrics_df = analyzer.get_low_metrics_brand(metrics_df, 10, 0.8)
-    print(low_metrics_df)
 
-    print("")
-    print("### incorrect sample ###")
-    incorrect_df = analyzer.get_specified_brand_incorrect_samples("Alaska USA Federal Credit Union")
-    print(f"inference : {incorrect_df['inference'].tolist()[0]}")
-    print(f"identified : {incorrect_df['identified'].tolist()[0]}")
-    with open("D:/datasets/phishing_identification/qa_results/incorrect_sample.txt", "w", encoding="utf-8") as f:
-        f.write(incorrect_df["html"].tolist()[0])
-    print("")
-    print("### correct sample ###")
-    correct_df = analyzer.get_specified_brand_correct_samples("Alaska USA Federal Credit Union")
-    print(f"inference : {correct_df['inference'].tolist()[0]}")
-    print(f"identified : {correct_df['identified'].tolist()[0]}")
-    with open("D:/datasets/phishing_identification/qa_results/correct_sample.txt", "w", encoding="utf-8") as f:
-        f.write(correct_df["html"].tolist()[0])
+    analyze_only_eval_label_samples(analyzer)
+
+    # metrics_df.to_csv(f"{base_path}/qa_validation_result_metrics.csv", index=False)
+    # analyzer.get_summary_plot(metrics_df)
+    #
+    # analyze_low_metric_samples(analyzer)

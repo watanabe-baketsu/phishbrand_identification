@@ -17,7 +17,7 @@ def gpt_x_analyze(path: str):
     analyzer = GPTResultAnalyzer(path, "pandas")
     analyzer.add_correct_column()
     print(f"{path.split('/')[-1]} Accuracy : {analyzer.get_accuracy()}")
-    df = analyzer.get_metrics_by_brand()
+    df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(df)
     analyzer.get_summary_plot(df)
     low_metrics_df = analyzer.get_low_metrics_brand(df, 10, 0.8)
