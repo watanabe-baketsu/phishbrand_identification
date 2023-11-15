@@ -10,7 +10,7 @@ class DatasetAnalyzer:
         self.labels = list(set(self.dataset["title"]))
         self.df = pd.DataFrame()
 
-    def select_specified_range_samples(self, from_idx: int, to_idx: int) -> Dataset:
+    def select_specified_range_samples(self, from_idx: int, to_idx: int):
         self.dataset = self.dataset.select(range(from_idx, to_idx))
         self.labels = list(set(self.dataset["title"]))
 
@@ -26,6 +26,19 @@ class DatasetAnalyzer:
         self.df = pd.concat([self.df, pd.DataFrame(data)], ignore_index=True)
         self.df = self.df.sort_values(by="percentage", ascending=False)
         return self.df
+
+    def get_only_second_label(self, first_from: int, first_to: int, second_from: int, second_to: int) -> list:
+        first_dataset = self.dataset.select(range(first_from, first_to))
+        second_dataset = self.dataset.select(range(second_from, second_to))
+
+        first_labels = list(set(first_dataset["title"]))
+        second_labels = list(set(second_dataset["title"]))
+
+        only_second_labels = []
+        for second_label in second_labels:
+            if second_label not in first_labels:
+                only_second_labels.append(second_label)
+        return only_second_labels
 
     def display_answer_start_mapping(self):
         answer_start_list = []
@@ -57,38 +70,40 @@ class DatasetAnalyzer:
 
 if __name__ == "__main__":
     analyzer = DatasetAnalyzer("D:/datasets/phishing_identification/phish-html-en-qa")
+    only_second_labels = analyzer.get_only_second_label(0, 10000, 10000, 14000)
+    print("only second labels : ", only_second_labels)
     analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
     analyzer.display_answer_start_mapping()
 
-    # df = analyzer.get_label_percentage()
+    df = analyzer.get_label_percentage()
     # save to csv
-    # df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
-    # pd.set_option('display.max_rows', 200)
-    # print(df[df["count"] >= 1])
-    # fig, ax1 = plt.subplots()
-    #
-    # # 棒グラフ (要素数)
-    # ax1.bar(df["label"], df["count"], color='b', alpha=0.6, label='Counts')
-    # ax1.set_ylabel('Counts', color='b')
-    # ax1.tick_params('y', colors='b')
-    # ax1.set_xticks([])
-    #
-    # percentages = df["percentage"].tolist()
-    # sum_percentages = []
-    # sum_percentage = 0
-    # for percentage in percentages:
-    #     sum_percentage += percentage
-    #     sum_percentages.append(sum_percentage)
-    # # convert list to pandas series
-    # sum_percentages = pd.Series(sum_percentages)
-    #
-    # ax2 = ax1.twinx()
-    # ax2.plot(df["label"], sum_percentages, color='r', marker='o', label='Percentage')
-    # ax2.set_ylabel('Percentage (%)', color='r')
-    # ax2.tick_params('y', colors='r')
-    #
-    # plt.title("Counts and Percentages of Labels")
-    # plt.show()
-    # plt.bar(df["label"], df["percentage"], )
-    # plt.show()
+    df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
+    pd.set_option('display.max_rows', 200)
+    print(df[df["count"] >= 1])
+    fig, ax1 = plt.subplots()
+
+    # 棒グラフ (要素数)
+    ax1.bar(df["label"], df["count"], color='b', alpha=0.6, label='Counts')
+    ax1.set_ylabel('Counts', color='b')
+    ax1.tick_params('y', colors='b')
+    ax1.set_xticks([])
+
+    percentages = df["percentage"].tolist()
+    sum_percentages = []
+    sum_percentage = 0
+    for percentage in percentages:
+        sum_percentage += percentage
+        sum_percentages.append(sum_percentage)
+    # convert list to pandas series
+    sum_percentages = pd.Series(sum_percentages)
+
+    ax2 = ax1.twinx()
+    ax2.plot(df["label"], sum_percentages, color='r', marker='o', label='Percentage')
+    ax2.set_ylabel('Percentage (%)', color='r')
+    ax2.tick_params('y', colors='r')
+
+    plt.title("Counts and Percentages of Labels")
+    plt.show()
+    plt.bar(df["label"], df["percentage"], )
+    plt.show()
