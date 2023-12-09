@@ -1,6 +1,6 @@
 import pandas as pd
 import torch
-from datasets import load_from_disk
+from datasets import load_from_disk, Dataset
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering
 from sentence_transformers import SentenceTransformer, util
 
@@ -41,6 +41,37 @@ def get_similar_brand(batch):
     return {"identified": identified_brands, "similarity": similarity}
 
 
+def manage_resulet(targets: Dataset, save_mode=True) -> int:
+    correct_ans = 0
+    results = []
+    if save_mode:
+        for data in targets:
+            if data["identified"] == data["title"]:
+                correct_ans += 1
+                is_correct = 1
+            else:
+                is_correct = 0
+            # print(f"answer : {data['title']} / identified : {data['identified']} / similarity : {data['similarity']}")
+
+            # For result analysis
+            results.append({
+                "inference": data["inference"],
+                "identified": data["identified"],
+                "similarity": data["similarity"],
+                "answer": data["title"],
+                "correct": is_correct,
+                "html": data["context"]
+            })
+        result_df = pd.DataFrame(results)
+        result_df.to_csv("D:/datasets/phishing_identification/qa_validation_result.csv", index=False)
+    else:
+        for data in targets:
+            if data["identified"] == data["title"]:
+                correct_ans += 1
+
+    return correct_ans
+
+
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
@@ -61,27 +92,7 @@ if __name__ == "__main__":
     dataset = dataset.map(inference_brand, batched=True, batch_size=5)
     dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
 
-    results = []
-    correct_ans = 0
-    for data in dataset:
-        if data["identified"] == data["title"]:
-            correct_ans += 1
-            is_correct = 1
-        else:
-            is_correct = 0
-        # print(f"answer : {data['title']} / identified : {data['identified']} / similarity : {data['similarity']}")
-
-        # For result analysis
-        results.append({
-            "inference": data["inference"],
-            "identified": data["identified"],
-            "similarity": data["similarity"],
-            "answer": data["title"],
-            "correct": is_correct,
-            "html": data["context"]
-        })
-    result_df = pd.DataFrame(results)
-    result_df.to_csv("D:/datasets/phishing_identification/qa_validation_result.csv", index=False)
+    correct_ans = manage_resulet(dataset, save_mode=False)
 
     print(f"the number of Brand List : {len(brand_list)}")
     print(f"accuracy : {correct_ans / validation_length}")
