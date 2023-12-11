@@ -10,7 +10,7 @@ def get_inference(batch):
     inference = []
     for text, brand in zip(batch["text"], batch["brand"]):
         context = f"## Context\n{text[:1500]}\n\n"  # truncate context 1500 characters
-        answer = f"## Answer\n"
+        answer = "## Answer\n"
         prompt = question + context + answer
         inputs = tokenizer(prompt, padding=False, truncation=True, max_length=512, return_tensors="pt")
         with torch.no_grad():
