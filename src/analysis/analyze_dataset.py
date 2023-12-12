@@ -40,17 +40,10 @@ class DatasetAnalyzer:
                 only_second_labels.append(second_label)
         return only_second_labels
 
-    def display_answer_start_mapping(self):
+    def display_answer_start_mapping(self, path: str):
         answer_start_list = []
         for data in self.dataset:
             answer_start_list.append(data["answers"]["answer_start"][0])
-        fig, ax = plt.subplots()
-        points = [answer_start_list]
-
-        bp = ax.boxplot(points)
-        ax.set_xticklabels(['answer start index'])
-        plt.grid()
-        plt.show()
 
         # bar plot
         range_size = 100
@@ -60,11 +53,35 @@ class DatasetAnalyzer:
         ranges = [str(x[0]) + "-" + str(x[0] + range_size) for x in sorted_counts]
         counts = [x[1] for x in sorted_counts]
 
-        plt.bar(ranges, counts)
-        plt.xlabel('Range')
-        plt.ylabel('Count')
-        plt.xticks(rotation=45)
+        fig, ax1 = plt.subplots()
+        bars = ax1.bar(ranges, counts, color='b', alpha=0.6, label='Counts')
+        ax1.set_ylabel('Counts', color='b')
+        ax1.tick_params('y', colors='b')
+        ax1.set_xticks(range(len(ranges)))
+        ax1.set_xticklabels(ranges, rotation=-45, ha='left')
+
+        # 各棒グラフの上にサンプル数を表示
+        for bar in bars:
+            height = bar.get_height()
+            ax1.text(bar.get_x() + bar.get_width() / 2, height,
+                     str(int(height)), ha='center', va='bottom', fontsize=8)
+
+        # 累積グラフ（線グラフ）
+        sum_counts = []
+        sum_count = 0
+        for count in counts:
+            sum_count += count
+            sum_counts.append(sum_count)
+        # convert list to pandas series
+        sum_counts = pd.Series(sum_counts)
+
+        ax2 = ax1.twinx()
+        ax2.plot(ranges, sum_counts, color='r', marker='o', label='Sum')
+        ax2.set_ylabel('Sum', color='r')
+        ax2.tick_params('y', colors='r')
+
         plt.tight_layout()
+        plt.savefig(f"{path}/graph.pdf", bbox_inches='tight')
         plt.show()
 
 
@@ -74,7 +91,7 @@ if __name__ == "__main__":
     print("only second labels : ", only_second_labels)
     analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
-    analyzer.display_answer_start_mapping()
+    analyzer.display_answer_start_mapping(path="D:/datasets/phishing_identification/qa_results")
 
     df = analyzer.get_label_percentage()
     # save to csv
