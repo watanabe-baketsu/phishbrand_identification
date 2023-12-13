@@ -79,6 +79,7 @@ class DatasetAnalyzer:
         ax2.plot(ranges, sum_counts, color='r', marker='o', label='Sum')
         ax2.set_ylabel('Sum', color='r')
         ax2.tick_params('y', colors='r')
+        ax2.set_ylim(bottom=0)  # 折れ線グラフのメモリを0スタートにする
 
         plt.tight_layout()
         plt.savefig(f"{path}/graph.pdf", bbox_inches='tight')

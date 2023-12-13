@@ -83,6 +83,22 @@ class ResultAnalyzer:
         plt.show()
 
     @staticmethod
+    def get_recall_plot(df: pd.DataFrame, path: str):
+        fig, ax1 = plt.subplots()
+
+        # countの棒グラフとrecallの折れ線グラフを重ねて表示
+        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
+        ax1.set_ylabel('Count [samples]', fontsize=14)
+        ax1.tick_params(axis='x', labelsize=0)  # X軸のラベルを非表示
+        ax2 = ax1.twinx()
+        ax2.plot(df.index, df['recall'], 'tab:orange', label='Recall')
+        ax2.set_ylabel('Recall', fontsize=14)
+        ax1.legend(loc='lower left', fontsize=14)
+        ax2.legend(loc='lower right', fontsize=14)
+        plt.savefig(f"{path}/recall_plot.pdf", bbox_inches='tight')
+        plt.show()
+
+    @staticmethod
     def get_low_metrics_brand(metrics: pd.DataFrame, count_threshold: int, metrics_threshold) -> pd.DataFrame:
         metrics = metrics[metrics["count"] >= count_threshold]
         f1_metrics = metrics[metrics["f1"] <= metrics_threshold]
@@ -156,7 +172,9 @@ if __name__ == "__main__":
     metrics_df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(metrics_df)
 
-    analyze_only_eval_label_samples(analyzer)
+    analyzer.get_recall_plot(metrics_df, "D:/datasets/phishing_identification/qa_results")
+
+    # analyze_only_eval_label_samples(analyzer)
 
     # metrics_df.to_csv(f"{base_path}/qa_validation_result_metrics.csv", index=False)
     # analyzer.get_summary_plot(metrics_df)
