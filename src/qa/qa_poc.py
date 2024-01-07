@@ -41,7 +41,7 @@ def get_similar_brand(batch):
     return {"identified": identified_brands, "similarity": similarity}
 
 
-def manage_resulet(targets: Dataset, save_mode=True) -> int:
+def manage_result(targets: Dataset, save_mode=True) -> int:
     correct_ans = 0
     results = []
     if save_mode:
@@ -92,7 +92,7 @@ if __name__ == "__main__":
     dataset = dataset.map(inference_brand, batched=True, batch_size=5)
     dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
 
-    correct_ans = manage_resulet(dataset, save_mode=False)
+    correct_ans = manage_result(dataset, save_mode=False)
 
     print(f"the number of Brand List : {len(brand_list)}")
     print(f"accuracy : {correct_ans / validation_length}")
