@@ -99,6 +99,22 @@ class ResultAnalyzer:
         plt.show()
 
     @staticmethod
+    def get_precision_plot(df: pd.DataFrame, path: str):
+        fig, ax1 = plt.subplots()
+
+        # countの棒グラフとprecisionの折れ線グラフを重ねて表示
+        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
+        ax1.set_ylabel('Count [samples]', fontsize=14)
+        ax1.tick_params(axis='x', labelsize=0)
+        ax2 = ax1.twinx()
+        ax2.plot(df.index, df['precision'], 'tab:green', label='Precision')
+        ax2.set_ylabel('Precision', fontsize=14)
+        ax1.legend(loc='lower left', fontsize=14)
+        ax2.legend(loc='lower right', fontsize=14)
+        plt.savefig(f"{path}/precision_plot.pdf", bbox_inches='tight')
+        plt.show()
+
+    @staticmethod
     def get_low_metrics_brand(metrics: pd.DataFrame, count_threshold: int, metrics_threshold) -> pd.DataFrame:
         metrics = metrics[metrics["count"] >= count_threshold]
         f1_metrics = metrics[metrics["f1"] <= metrics_threshold]
@@ -163,7 +179,7 @@ def analyze_low_metric_samples(analyzer: ResultAnalyzer):
 
 
 if __name__ == "__main__":
-    base_path = "D:/datasets/phishing_identification/qa_results"
+    base_path = "/mnt/d/datasets/phishing_identification/qa_results"
     path = f"{base_path}/qa_validation_result.csv"
     analyzer = ResultAnalyzer(path)
     print(analyzer.df.columns)
@@ -172,7 +188,8 @@ if __name__ == "__main__":
     metrics_df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(metrics_df)
 
-    analyzer.get_recall_plot(metrics_df, "D:/datasets/phishing_identification/qa_results")
+    # analyzer.get_recall_plot(metrics_df, base_path)
+    analyzer.get_precision_plot(metrics_df, base_path)
 
     # analyze_only_eval_label_samples(analyzer)
 
