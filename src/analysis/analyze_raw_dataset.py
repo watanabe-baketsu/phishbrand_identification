@@ -53,7 +53,7 @@ class RawDatasetAnalysis:
         ax1.set_ylabel('Counts', color='b', fontsize=8)
         ax1.tick_params('y', colors='b', labelsize=8)  # y軸の目盛りサイズをフォントサイズ8に設定
         ax1.set_xticks(range(len(ranges)))
-        ax1.set_xticklabels(ranges, rotation=-90, ha='left', fontsize=8)
+        ax1.set_xticklabels(ranges, rotation=-90, ha='left', fontsize=6)
 
         # 累積グラフ（線グラフ）
         sum_counts = []
