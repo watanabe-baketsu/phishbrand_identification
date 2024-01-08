@@ -43,10 +43,10 @@ def get_similar_brand(batch):
     return {"identified": identified_brands, "similarity": similarity}
 
 
-def manage_result(targets: Dataset, save_mode=True) -> int:
+def manage_result(targets: Dataset, save_path:str, save_mode: bool=True) -> int:
     correct_ans = 0
     results = []
-    if save_mode:
+    if save_mode is True:
         for data in targets:
             if data["identified"] == data["title"]:
                 correct_ans += 1
@@ -65,7 +65,7 @@ def manage_result(targets: Dataset, save_mode=True) -> int:
                 "html": data["context"]
             })
         result_df = pd.DataFrame(results)
-        result_df.to_csv("D:/datasets/phishing_identification/qa_validation_result.csv", index=False)
+        result_df.to_csv(save_path, index=False)
     else:
         for data in targets:
             if data["identified"] == data["title"]:
@@ -78,8 +78,12 @@ if __name__ == "__main__":
     arg_parser = ArgumentParser()
     arg_parser.add_argument("--model_name", type=str, default="/mnt/d/tuned_models/roberta-base-squad2/checkpoint-5000")
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
+    arg_parser.add_argument("--save_mode", type=bool, default=False)
+    arg_parser.add_argument("--save_path", type=str, default="/mnt/d/datasets/phishing_identification/qa_validation_result.csv")
 
     args = arg_parser.parse_args()
+    print("The following arguments are passed:")
+    print(args)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
@@ -100,7 +104,7 @@ if __name__ == "__main__":
     dataset = dataset.map(inference_brand, batched=True, batch_size=5)
     dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
 
-    correct_ans = manage_result(dataset, save_mode=False)
+    correct_ans = manage_result(dataset, save_path=args.save_path, save_mode=args.save_mode)
 
     print(f"the number of Brand List : {len(brand_list)}")
     print(f"accuracy : {correct_ans / validation_length}")

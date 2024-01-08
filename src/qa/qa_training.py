@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 from datasets import load_from_disk
 from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TrainingArguments, Trainer, DefaultDataCollator
 
@@ -55,12 +57,18 @@ def preprocess_function(examples):
 
 
 if __name__ == "__main__":
-    model_name = "deepset/roberta-base-squad2"
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument("--model_name", type=str, default="deepset/roberta-base-squad2")
+    arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
+    arg_parser.add_argument("--output_dir", type=str, default="/mnt/d/tuned_models")
+    args = arg_parser.parse_args()
+
+    model_name = args.model_name
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to("cuda")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     base_path = "/mnt/d/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/phish-html-en-qa")
+    dataset = load_from_disk(f"{base_path}/{args.dataset}")
     dataset = dataset.select(range(10000)).train_test_split(test_size=0.2)
     tokenized_dataset = dataset.map(preprocess_function, batched=True, remove_columns=dataset["train"].column_names)
 
@@ -70,7 +78,7 @@ if __name__ == "__main__":
     print(len(dataset["test"]))
 
     training_args = TrainingArguments(
-        output_dir=f"/mnt/d/tmp/tuned_models/{model_name.split('/')[-1]}",
+        output_dir=f"{args.output_dir}/{model_name.split('/')[-1]}",
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,
