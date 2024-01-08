@@ -59,7 +59,7 @@ if __name__ == "__main__":
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to("cuda")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
-    base_path = "D:/datasets/phishing_identification"
+    base_path = "/mnt/d/datasets/phishing_identification"
     dataset = load_from_disk(f"{base_path}/phish-html-en-qa")
     dataset = dataset.select(range(10000)).train_test_split(test_size=0.2)
     tokenized_dataset = dataset.map(preprocess_function, batched=True, remove_columns=dataset["train"].column_names)
@@ -70,12 +70,12 @@ if __name__ == "__main__":
     print(len(dataset["test"]))
 
     training_args = TrainingArguments(
-        output_dir=f"D:/tuned_models/{model_name.split('/')[-1]}",
+        output_dir=f"/mnt/d/tmp/tuned_models/{model_name.split('/')[-1]}",
         evaluation_strategy="epoch",
         learning_rate=2e-5,
         per_device_train_batch_size=16,
         per_device_eval_batch_size=16,
-        num_train_epochs=20,
+        num_train_epochs=10,
         weight_decay=0.01,
     )
 

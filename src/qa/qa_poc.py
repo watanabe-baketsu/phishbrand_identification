@@ -1,3 +1,5 @@
+from argparse import ArgumentParser
+
 import pandas as pd
 import torch
 from datasets import load_from_disk, Dataset
@@ -73,14 +75,20 @@ def manage_result(targets: Dataset, save_mode=True) -> int:
 
 
 if __name__ == "__main__":
+    arg_parser = ArgumentParser()
+    arg_parser.add_argument("--model_name", type=str, default="/mnt/d/tuned_models/roberta-base-squad2/checkpoint-5000")
+    arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
+
+    args = arg_parser.parse_args()
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
     # load dataset
-    base_path = "D:/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/phish-html-en-qa").select(range(10000,10000+validation_length))
+    base_path = "/mnt/d/datasets/phishing_identification"
+    dataset = load_from_disk(f"{base_path}/{args.dataset}").select(range(10000,10000+validation_length))
     # generate target brand list
     brand_list = list(set(dataset["title"]))
-    model_name = "D:/tuned_models/roberta-base-squad2/checkpoint-5000"
+    model_name = args.model_name
 
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForQuestionAnswering.from_pretrained(model_name).to(device)
