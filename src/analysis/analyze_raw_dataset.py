@@ -50,10 +50,10 @@ class RawDatasetAnalysis:
 
         fig, ax1 = plt.subplots()  # グラフのサイズを調整
         ax1.bar(ranges, counts, color='b', alpha=0.6, label='Counts') 
-        ax1.set_ylabel('Counts', color='b')
-        ax1.tick_params('y', colors='b')
+        ax1.set_ylabel('Counts', color='b', fontsize=8)
+        ax1.tick_params('y', colors='b', labelsize=8)  # y軸の目盛りサイズをフォントサイズ8に設定
         ax1.set_xticks(range(len(ranges)))
-        ax1.set_xticklabels(ranges, rotation=-90, ha='left', fontsize=7)
+        ax1.set_xticklabels(ranges, rotation=-90, ha='left', fontsize=8)
 
         # 累積グラフ（線グラフ）
         sum_counts = []
@@ -66,8 +66,8 @@ class RawDatasetAnalysis:
 
         ax2 = ax1.twinx()
         ax2.plot(ranges, sum_counts, color='r', marker='o', label='Sum')
-        ax2.set_ylabel('Sum', color='r')
-        ax2.tick_params('y', colors='r')
+        ax2.set_ylabel('Sum', color='r', fontsize=8)
+        ax2.tick_params('y', colors='r', labelsize=8)  # y軸の目盛りサイズをフォントサイズ8に設定
         ax2.set_ylim(bottom=0)  # 折れ線グラフのメモリを0スタートにする
 
         plt.tight_layout()
