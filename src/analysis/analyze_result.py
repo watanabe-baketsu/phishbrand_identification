@@ -159,31 +159,19 @@ def print_save_specified_samples(df: pd.DataFrame, file_name: str):
     print("")
 
 
-def analyze_only_eval_label_samples(analyzer: ResultAnalyzer):
-    only_test_labels = [
-        "First National Bank SA",
-        "Credit Agricole S.A.",
-        "Equa bank",
-        "Tesco Personal Finance PLC",
-        "IBC Bank",
-        "NedBank Limited",
-        "Gumtree",
-        "Juno Online Services",
-        "Monmouth Telecom",
-        "ADP, LLC",
-    ]
+def analyze_only_eval_label_samples(analyzer: ResultAnalyzer, only_test_labels: list):
     only_df = analyzer.get_specified_brands_metrics(only_test_labels)
     print(only_df)
 
-    print("### unseen label correct sammple ###")
-    correct_df = analyzer.get_specified_brand_correct_samples("Monmouth Telecom")
-    print_save_specified_samples(correct_df, "only_eval_label_correct_sample.txt")
+    # print("### unseen label correct sammple ###")
+    # correct_df = analyzer.get_specified_brand_correct_samples("Monmouth Telecom")
+    # print_save_specified_samples(correct_df, "only_eval_label_correct_sample.txt")
 
-    print("### unseen label incorrect sammple ###")
-    incorrect_df = analyzer.get_specified_brand_incorrect_samples(
-        "Credit Agricole S.A."
-    )
-    print_save_specified_samples(incorrect_df, "only_eval_label_incorrect_sample.txt")
+    # print("### unseen label incorrect sammple ###")
+    # incorrect_df = analyzer.get_specified_brand_incorrect_samples(
+    #     "Credit Agricole S.A."
+    # )
+    # print_save_specified_samples(incorrect_df, "only_eval_label_incorrect_sample.txt")
 
 
 def analyze_low_metric_samples(analyzer: ResultAnalyzer):
@@ -205,7 +193,7 @@ def analyze_low_metric_samples(analyzer: ResultAnalyzer):
 
 if __name__ == "__main__":
     base_path = "/mnt/d/datasets/phishing_identification/qa_results"
-    path = f"{base_path}/qa_validation_result.csv"
+    path = f"{base_path}/qa_validation_result_brandsplit.csv"
     analyzer = ResultAnalyzer(path)
     print(analyzer.df.columns)
 
@@ -213,12 +201,28 @@ if __name__ == "__main__":
     metrics_df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(metrics_df)
 
-    # analyzer.get_recall_plot(metrics_df, base_path)
+    analyzer.get_recall_plot(metrics_df, base_path)
     analyzer.get_precision_plot(metrics_df, base_path)
 
-    # analyze_only_eval_label_samples(analyzer)
+    only_test_labels = [
+        "First National Bank SA",
+        "Credit Agricole S.A.",
+        "Equa bank",
+        "Tesco Personal Finance PLC",
+        "IBC Bank",
+        "NedBank Limited",
+        "Gumtree",
+        "Juno Online Services",
+        "Monmouth Telecom",
+        "ADP, LLC",
+        "Chase Personal Banking",
+        "Facebook, Inc.",
+    ]
+    analyze_only_eval_label_samples(analyzer, only_test_labels)
 
-    # metrics_df.to_csv(f"{base_path}/qa_validation_result_metrics.csv", index=False)
-    # analyzer.get_summary_plot(metrics_df)
+    metrics_df.to_csv(
+        f"{base_path}/qa_validation_result_blandsplit_metrics.csv", index=False
+    )
+    analyzer.get_summary_plot(metrics_df)
     #
     # analyze_low_metric_samples(analyzer)

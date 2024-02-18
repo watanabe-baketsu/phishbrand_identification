@@ -1,3 +1,4 @@
+from collections import Counter
 from functools import partial
 
 import pandas as pd
@@ -70,10 +71,37 @@ class QADatasetPreprocessor:
         # どのブランド名も含まない場合にTrueを返す
         return not any(brand in example["title"] for brand in brands_to_remove)
 
+    @staticmethod
+    def get_low_sample_brands(
+        dataset: DatasetDict, threshold_percentage: float = 10.0
+    ) -> list:
+        brand_counts = Counter(dataset["title"])
+        # サンプル数が少ない順にブランドをソート
+        sorted_brands = sorted(brand_counts.items(), key=lambda x: x[1])
+
+        # 全体のサンプル数
+        total_samples = len(dataset)
+        # 目標とするサンプル数
+        target_samples = total_samples * (threshold_percentage / 100)
+
+        # サンプル数の合計が目標を超えるまでブランドを取り出す
+        accumulated_samples = 0
+        low_sample_brands = []
+        for brand, count in sorted_brands:
+            accumulated_samples += count
+            low_sample_brands.append(brand)
+            if accumulated_samples > target_samples:
+                break
+
+        return low_sample_brands
+
+    @staticmethod
     def remove_brands_from_dataset(
-        self, dataset: DatasetDict, brands_to_remove: list
+        dataset: DatasetDict, brands_to_remove: list
     ) -> DatasetDict:
-        filter_function = partial(self.filter_brands, brands_to_remove=brands_to_remove)
+        filter_function = partial(
+            QADatasetPreprocessor.filter_brands, brands_to_remove=brands_to_remove
+        )
         filtered_dataset = dataset.filter(filter_function)
         return filtered_dataset
 
@@ -88,7 +116,7 @@ class BrandInferenceProcessor:
         # calculate similarity between two brand strings
         self.st_model = SentenceTransformer(st_model)
         self.brand_list = brand_list
-        self.passage_embedding = st_model.encode(brand_list)
+        self.passage_embedding = self.st_model.encode(brand_list)
 
     def inference_brand(self, batch):
         question = "What is the name of the website's brand?"
@@ -131,6 +159,18 @@ class BrandInferenceProcessor:
                 )
 
         return {"identified": identified_brands, "similarity": similarity}
+
+    @staticmethod
+    def get_only_eval_brands(
+        train_dataset: DatasetDict, eval_dataset: DatasetDict
+    ) -> set:
+        train_bland_list = list(set(train_dataset["title"]))
+        remove_brands = QADatasetPreprocessor.get_low_sample_brands(train_dataset, 10)
+        train_brands = set(train_bland_list) - set(remove_brands)
+
+        eval_brands = set(eval_dataset["title"])
+        only_eval_brands = eval_brands - train_brands
+        return only_eval_brands
 
     @staticmethod
     def manage_result(

@@ -1,10 +1,15 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
-from transformers import (AutoModelForQuestionAnswering, AutoTokenizer,
-                          DefaultDataCollator, Trainer, TrainingArguments)
+from transformers import (
+    AutoModelForQuestionAnswering,
+    AutoTokenizer,
+    DefaultDataCollator,
+    Trainer,
+    TrainingArguments,
+)
 
-from preprocessor import QADatasetPreprocessor
+from processor import QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -20,13 +25,16 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(model_name)
 
     base_path = "/mnt/d/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/{args.dataset}")
-    dataset = dataset.select(range(10000)).train_test_split(test_size=0.2)
-
-    remove_brands = ["Chase Personal Banking", "Facebook, Inc."]
-
+    dataset = load_from_disk(f"{base_path}/{args.dataset}").select(range(10000))
     preprocessor = QADatasetPreprocessor(tokenizer)
+
+    # 下から10%のサンプル数の少ないブランドを削除(後のモデルの耐性評価で使用するため)
+    remove_brands = preprocessor.get_low_sample_brands(dataset, 10)
+    print("削除するブランド:", remove_brands)
     dataset = preprocessor.remove_brands_from_dataset(dataset, remove_brands)
+
+    dataset = dataset.train_test_split(test_size=0.1)
+
     tokenized_dataset = dataset.map(
         preprocessor.tokenize_and_align_answers,
         batched=True,

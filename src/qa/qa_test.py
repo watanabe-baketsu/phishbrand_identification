@@ -3,7 +3,7 @@ from argparse import ArgumentParser
 import torch
 from datasets import load_from_disk
 
-from preprocessor import BrandInferenceProcessor
+from processor import BrandInferenceProcessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()

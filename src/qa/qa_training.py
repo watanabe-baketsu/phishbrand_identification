@@ -1,10 +1,15 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
-from transformers import (AutoModelForQuestionAnswering, AutoTokenizer,
-                          DefaultDataCollator, Trainer, TrainingArguments)
+from transformers import (
+    AutoModelForQuestionAnswering,
+    AutoTokenizer,
+    DefaultDataCollator,
+    Trainer,
+    TrainingArguments,
+)
 
-from preprocessor import QADatasetPreprocessor
+from processor import QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
