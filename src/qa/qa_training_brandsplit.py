@@ -21,7 +21,10 @@ if __name__ == "__main__":
     dataset = load_from_disk(f"{base_path}/{args.dataset}")
     dataset = dataset.select(range(10000)).train_test_split(test_size=0.2)
 
+    remove_brands = ["Chase Personal Banking", "Facebook, Inc."]
+
     preprocessor = QADatasetPreprocessor(tokenizer)
+    dataset = preprocessor.remove_brands_from_dataset(dataset, remove_brands)
     tokenized_dataset = dataset.map(preprocessor.tokenize_and_align_answers, batched=True, remove_columns=dataset["train"].column_names)
 
     data_collator = DefaultDataCollator()
