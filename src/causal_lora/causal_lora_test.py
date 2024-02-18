@@ -1,8 +1,8 @@
 import torch
 from datasets import Dataset
-from peft import PeftModel, PeftConfig
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from peft import PeftConfig, PeftModel
 from sentence_transformers import SentenceTransformer, util
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def get_inference(batch):
@@ -12,7 +12,9 @@ def get_inference(batch):
         context = f"## Context\n{text[:1500]}\n\n"  # truncate context 1500 characters
         answer = "## Answer\n"
         prompt = question + context + answer
-        inputs = tokenizer(prompt, padding=False, truncation=True, max_length=512, return_tensors="pt")
+        inputs = tokenizer(
+            prompt, padding=False, truncation=True, max_length=512, return_tensors="pt"
+        )
         with torch.no_grad():
             outputs = model(**inputs.to(device))
         # Taking logits and converting them to token IDs
@@ -22,7 +24,7 @@ def get_inference(batch):
         # レスポンス内容のみ抽出
         sentinel = "## Answer"
         sentinel_loc = decoded.find(sentinel)
-        result = decoded[sentinel_loc+len(sentinel):]
+        result = decoded[sentinel_loc + len(sentinel) :]
         inference.append(result)
     return {"inference": inference}
 
@@ -50,22 +52,30 @@ if __name__ == "__main__":
     model = PeftModel.from_pretrained(model, model_path, config=config).to(device)
 
     batch_size = 1
-    phish_dataset = Dataset.load_from_disk("/content/drive/MyDrive/datasets/phish-text-en")
+    phish_dataset = Dataset.load_from_disk(
+        "/content/drive/MyDrive/datasets/phish-text-en"
+    )
     dataset = Dataset.from_list(phish_dataset["phish"])
     brand_list = list(set(dataset["brand"]))
     dataset = dataset.remove_columns(["url", "host", "label"])
-    test = dataset.shuffle(seed=25).select(range(6000, 6100)).map(get_inference, batched=True, batch_size=batch_size)
+    test = (
+        dataset.shuffle(seed=25)
+        .select(range(6000, 6100))
+        .map(get_inference, batched=True, batch_size=batch_size)
+    )
 
-    st_model = SentenceTransformer('all-MiniLM-L6-v2').to(device)
+    st_model = SentenceTransformer("all-MiniLM-L6-v2").to(device)
     passage_embedding = st_model.encode(brand_list)
 
     test = test.map(get_similar_brand, batched=True, batch_size=20)
 
     correct_ans = 0
     for data in test:
-        print(f"model inference : {data['inference']} / "
-              f"identified brand : {data['identified']} / "
-              f"correct : {data['brand']}")
+        print(
+            f"model inference : {data['inference']} / "
+            f"identified brand : {data['identified']} / "
+            f"correct : {data['brand']}"
+        )
 
         if data["identified"] == data["brand"]:
             correct_ans += 1

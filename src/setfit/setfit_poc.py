@@ -11,7 +11,11 @@ def load_dataset(path: str) -> dict:
     target_brands = list(set(testing["title"]))
 
     def brand_edit(batch):
-        return {"title": [title if title in target_brands else "other" for title in batch["title"]]}
+        return {
+            "title": [
+                title if title in target_brands else "other" for title in batch["title"]
+            ]
+        }
 
     training = training.map(brand_edit, batched=True)
     testing = testing.map(brand_edit, batched=True)
@@ -51,10 +55,13 @@ def training_model(st_model: SetFitModel, train_val_dataset: dict) -> SetFitTrai
 
 if __name__ == "__main__":
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to(device)
+    model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to(
+        device
+    )
     dataset_path = "D:/datasets/phishing_identification/phish-html-en-qa"
     dataset = load_dataset(dataset_path)
 
     trainer = training_model(model, dataset)
-    trainer.model.save_pretrained(save_directory="D:/datasets/phishing_identification/trained_models")
-
+    trainer.model.save_pretrained(
+        save_directory="D:/datasets/phishing_identification/trained_models"
+    )

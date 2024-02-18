@@ -1,14 +1,16 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
-from transformers import AutoTokenizer, AutoModelForQuestionAnswering, TrainingArguments, Trainer, DefaultDataCollator
+from transformers import (AutoModelForQuestionAnswering, AutoTokenizer,
+                          DefaultDataCollator, Trainer, TrainingArguments)
 
 from preprocessor import QADatasetPreprocessor
 
-
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument("--model_name", type=str, default="deepset/roberta-base-squad2")
+    arg_parser.add_argument(
+        "--model_name", type=str, default="deepset/roberta-base-squad2"
+    )
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
     arg_parser.add_argument("--output_dir", type=str, default="/mnt/d/tuned_models")
     args = arg_parser.parse_args()
@@ -22,7 +24,11 @@ if __name__ == "__main__":
     dataset = dataset.select(range(10000)).train_test_split(test_size=0.2)
 
     preprocessor = QADatasetPreprocessor(tokenizer)
-    tokenized_dataset = dataset.map(preprocessor.tokenize_and_align_answers, batched=True, remove_columns=dataset["train"].column_names)
+    tokenized_dataset = dataset.map(
+        preprocessor.tokenize_and_align_answers,
+        batched=True,
+        remove_columns=dataset["train"].column_names,
+    )
 
     data_collator = DefaultDataCollator()
 

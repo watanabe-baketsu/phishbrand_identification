@@ -1,13 +1,9 @@
-from datasets import Dataset
-from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
-    DataCollatorForLanguageModeling,
-    Trainer,
-    TrainingArguments,
-)
-from peft import get_peft_model, LoraConfig, TaskType
 import torch
+from datasets import Dataset
+from peft import LoraConfig, TaskType, get_peft_model
+from transformers import (AutoModelForCausalLM, AutoTokenizer,
+                          DataCollatorForLanguageModeling, Trainer,
+                          TrainingArguments)
 
 
 def generate_prompt(batch):
@@ -18,7 +14,9 @@ def generate_prompt(batch):
         context = f"## Context\n{text[:1500]}\n\n"  # truncate context 1500 characters
         answer = f"## Answer\n{brand}\n\n"
         prompt = question + context + answer
-        result = tokenizer(prompt, padding=False, truncation=True, max_length=512, return_tensors="pt")
+        result = tokenizer(
+            prompt, padding=False, truncation=True, max_length=512, return_tensors="pt"
+        )
         inputs.append(result["input_ids"].squeeze(0))
         masks.append(result["attention_mask"].squeeze(0))
 
@@ -41,7 +39,7 @@ if __name__ == "__main__":
         lora_alpha=16,
         lora_dropout=0.1,
         bias="none",
-        target_modules=["q_proj", "v_proj"]
+        target_modules=["q_proj", "v_proj"],
     )
 
     model = get_peft_model(model, peft_config)
@@ -59,11 +57,21 @@ if __name__ == "__main__":
         lr_scheduler_type="cosine",
     )
 
-    phish_dataset = Dataset.load_from_disk("/content/drive/MyDrive/datasets/phish-text-en")
+    phish_dataset = Dataset.load_from_disk(
+        "/content/drive/MyDrive/datasets/phish-text-en"
+    )
     dataset = Dataset.from_list(phish_dataset["phish"])
     dataset = dataset.remove_columns(["url", "host", "label"])
-    training = dataset.shuffle(seed=25).select(range(5000)).map(generate_prompt, batched=True, batch_size=batch_size)
-    validation = dataset.shuffle(seed=25).select(range(5000, 6000)).map(generate_prompt, batched=True, batch_size=batch_size)
+    training = (
+        dataset.shuffle(seed=25)
+        .select(range(5000))
+        .map(generate_prompt, batched=True, batch_size=batch_size)
+    )
+    validation = (
+        dataset.shuffle(seed=25)
+        .select(range(5000, 6000))
+        .map(generate_prompt, batched=True, batch_size=batch_size)
+    )
 
     trainer = Trainer(
         model=model,
@@ -71,11 +79,10 @@ if __name__ == "__main__":
         train_dataset=training,
         eval_dataset=validation,
         tokenizer=tokenizer,
-        data_collator=data_collator
+        data_collator=data_collator,
     )
     model.config.use_cache = False
     trainer.train()
     model.config.use_cache = True
 
     trainer.model.save_pretrained(save_directory="/content/drive/MyDrive/tuned_models")
-

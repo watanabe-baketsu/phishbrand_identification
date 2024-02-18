@@ -11,7 +11,7 @@ from langdetect import detect
 
 
 def replace_multiple_newlines(text):
-    return re.sub(r'\n+', '\n', text)
+    return re.sub(r"\n+", "\n", text)
 
 
 class DatasetGenerator:
@@ -23,7 +23,9 @@ class DatasetGenerator:
         html_json_pairs = []
         for target_dir, _, _ in os.walk(self.base_path):
             # Only append if the html and info files exist.
-            if os.path.exists(target_dir + "/html.txt") and os.path.exists(target_dir + "/info.txt"):
+            if os.path.exists(target_dir + "/html.txt") and os.path.exists(
+                target_dir + "/info.txt"
+            ):
                 html_path = target_dir + "/html.txt"
                 info_path = target_dir + "/info.txt"
                 data = {
@@ -36,7 +38,7 @@ class DatasetGenerator:
 
     @staticmethod
     def _is_base64(text: str) -> bool:
-        pattern = r'^[A-Za-z0-9+/]*={0,2}$'
+        pattern = r"^[A-Za-z0-9+/]*={0,2}$"
         if re.match(pattern, text):
             try:
                 base64.b64decode(text)
@@ -47,7 +49,7 @@ class DatasetGenerator:
 
     @staticmethod
     def _get_only_text(html_text: str) -> str:
-        soup = BeautifulSoup(html_text, 'html.parser')
+        soup = BeautifulSoup(html_text, "html.parser")
         return soup.get_text()
 
     @staticmethod
@@ -60,9 +62,9 @@ class DatasetGenerator:
 
     def _remove_base64(self, soup: BeautifulSoup) -> str:
         # Remove img tags with base64 encoded src attributes
-        for img_tag in soup.find_all('img', src=True):
-            src_value = img_tag['src']
-            if src_value.startswith('data:image') and "base64" in src_value:
+        for img_tag in soup.find_all("img", src=True):
+            src_value = img_tag["src"]
+            if src_value.startswith("data:image") and "base64" in src_value:
                 # Assume base64 encoding if it starts with 'data:image'
                 img_tag.decompose()
 
@@ -74,11 +76,32 @@ class DatasetGenerator:
         return text
 
     def _shorten_html(self, html_text: str) -> str:
-        soup = BeautifulSoup(html_text, 'html.parser')
+        soup = BeautifulSoup(html_text, "html.parser")
         allowed_tags = [
-            'head', 'title', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'strong', 'a', 'img', 'hr', 'table', 'tbody', 'tr', 'th', 'td',
-            'ol', 'ul', 'li', 'ruby', 'label'
+            "head",
+            "title",
+            "body",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "strong",
+            "a",
+            "img",
+            "hr",
+            "table",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "ol",
+            "ul",
+            "li",
+            "ruby",
+            "label",
         ]
 
         for tag in soup.find_all(True):
@@ -91,11 +114,32 @@ class DatasetGenerator:
         return text
 
     def _shorten_by_text_html(self, html_text: str) -> str:
-        soup = BeautifulSoup(html_text, 'html.parser')
+        soup = BeautifulSoup(html_text, "html.parser")
         allowed_tags = [
-            'head', 'title', 'body', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'p', 'strong', 'a', 'img', 'hr', 'table', 'tbody', 'tr', 'th', 'td',
-            'ol', 'ul', 'li', 'ruby', 'label'
+            "head",
+            "title",
+            "body",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "strong",
+            "a",
+            "img",
+            "hr",
+            "table",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "ol",
+            "ul",
+            "li",
+            "ruby",
+            "label",
         ]
 
         for tag in soup.find_all(True):
@@ -245,17 +289,19 @@ class DatasetGenerator:
                 text = self._get_only_text(html)
                 host = info.split("//")[-1].split(".")[:-1]
                 if text != "" and self._is_english(text):  # only english html
-                    data = {
-                        "text": replace_multiple_newlines(text),
-                        "target": host
-                    }
+                    data = {"text": replace_multiple_newlines(text), "target": host}
                     dataset.append(data)
             except Exception as e:
                 print(e)
-        with open("D:/datasets/phishing_identification/training.jsonl", "w", encoding="utf-8", errors="ignore") as f:
+        with open(
+            "D:/datasets/phishing_identification/training.jsonl",
+            "w",
+            encoding="utf-8",
+            errors="ignore",
+        ) as f:
             for data in dataset:
                 json.dump(data, f)
-                f.write('\n')
+                f.write("\n")
         print("done")
 
 

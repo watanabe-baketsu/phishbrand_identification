@@ -1,12 +1,16 @@
 from functools import partial
 
+import pandas as pd
+import torch
 from datasets import DatasetDict
+from sentence_transformers import SentenceTransformer, util
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 
 
 class QADatasetPreprocessor:
     def __init__(self, tokenizer):
         self.tokenizer = tokenizer
-        
+
     def tokenize_and_align_answers(self, examples):
         questions = [q.strip() for q in examples["question"]]
         inputs = self.tokenizer(
@@ -39,7 +43,10 @@ class QADatasetPreprocessor:
             context_end = idx - 1
 
             # If the answer is not fully inside the context, label it (0, 0)
-            if offset[context_start][0] > end_char or offset[context_end][1] < start_char:
+            if (
+                offset[context_start][0] > end_char
+                or offset[context_end][1] < start_char
+            ):
                 start_positions.append(0)
                 end_positions.append(0)
             else:
@@ -60,10 +67,102 @@ class QADatasetPreprocessor:
 
     @staticmethod
     def filter_brands(example, brands_to_remove: list) -> bool:
-            # どのブランド名も含まない場合にTrueを返す
-            return not any(brand in example["title"] for brand in brands_to_remove)
+        # どのブランド名も含まない場合にTrueを返す
+        return not any(brand in example["title"] for brand in brands_to_remove)
 
-    def remove_brands_from_dataset(self, dataset: DatasetDict, brands_to_remove: list) -> DatasetDict:
+    def remove_brands_from_dataset(
+        self, dataset: DatasetDict, brands_to_remove: list
+    ) -> DatasetDict:
         filter_function = partial(self.filter_brands, brands_to_remove=brands_to_remove)
         filtered_dataset = dataset.filter(filter_function)
         return filtered_dataset
+
+
+class BrandInferenceProcessor:
+    def __init__(self, model, brand_list: list, st_model="all-MiniLM-L6-v2"):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = AutoModelForQuestionAnswering.from_pretrained(model).to(
+            self.device
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        # calculate similarity between two brand strings
+        self.st_model = SentenceTransformer(st_model)
+        self.brand_list = brand_list
+        self.passage_embedding = st_model.encode(brand_list)
+
+    def inference_brand(self, batch):
+        question = "What is the name of the website's brand?"
+        answers = []
+
+        for html in batch["context"]:
+            inputs = self.tokenizer(
+                question, html, return_tensors="pt", truncation=True
+            )
+
+            with torch.no_grad():
+                outputs = self.model(**inputs.to(self.device))
+
+            answer_start_index = outputs.start_logits.argmax()
+            answer_end_index = outputs.end_logits.argmax()
+
+            predict_answer_tokens = inputs.input_ids[
+                0, answer_start_index : answer_end_index + 1
+            ]
+            answer = self.tokenizer.decode(predict_answer_tokens).strip()
+            answers.append(answer)
+            # print(f"inference : {answer}")
+
+        return {"inference": answers}
+
+    def get_similar_brand(self, batch):
+        identified_brands = []
+        similarity = []
+        for inference in batch["inference"]:
+            query_embedding = self.st_model.encode(inference)
+            sim = util.dot_score(query_embedding, self.passage_embedding).max()
+            similarity.append(sim)
+            if sim < 0.5:
+                identified_brands.append("other")
+            else:
+                identified_brands.append(
+                    self.brand_list[
+                        util.dot_score(query_embedding, self.passage_embedding).argmax()
+                    ]
+                )
+
+        return {"identified": identified_brands, "similarity": similarity}
+
+    @staticmethod
+    def manage_result(
+        targets: DatasetDict, save_path: str, save_mode: bool = True
+    ) -> int:
+        correct_ans = 0
+        results = []
+        if save_mode is True:
+            for data in targets:
+                if data["identified"] == data["title"]:
+                    correct_ans += 1
+                    is_correct = 1
+                else:
+                    is_correct = 0
+                # print(f"answer : {data['title']} / identified : {data['identified']} / similarity : {data['similarity']}")
+
+                # For result analysis
+                results.append(
+                    {
+                        "inference": data["inference"],
+                        "identified": data["identified"],
+                        "similarity": data["similarity"],
+                        "answer": data["title"],
+                        "correct": is_correct,
+                        "html": data["context"],
+                    }
+                )
+            result_df = pd.DataFrame(results)
+            result_df.to_csv(save_path, index=False)
+        else:
+            for data in targets:
+                if data["identified"] == data["title"]:
+                    correct_ans += 1
+
+        return correct_ans

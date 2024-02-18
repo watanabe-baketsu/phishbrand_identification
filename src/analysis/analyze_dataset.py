@@ -1,5 +1,6 @@
-import pandas as pd
 from collections import Counter
+
+import pandas as pd
 from datasets import load_from_disk
 from matplotlib import pyplot as plt
 
@@ -22,12 +23,16 @@ class DatasetAnalyzer:
         for label in self.labels:
             label_count = self.dataset.filter(lambda x: x["title"] == label).num_rows
             label_percentage = label_count / self.dataset.num_rows
-            data.append({"label": label, "percentage": label_percentage, "count": label_count})
+            data.append(
+                {"label": label, "percentage": label_percentage, "count": label_count}
+            )
         self.df = pd.concat([self.df, pd.DataFrame(data)], ignore_index=True)
         self.df = self.df.sort_values(by="percentage", ascending=False)
         return self.df
 
-    def get_only_second_label(self, first_from: int, first_to: int, second_from: int, second_to: int) -> list:
+    def get_only_second_label(
+        self, first_from: int, first_to: int, second_from: int, second_to: int
+    ) -> list:
         first_dataset = self.dataset.select(range(first_from, first_to))
         second_dataset = self.dataset.select(range(second_from, second_to))
 
@@ -54,17 +59,23 @@ class DatasetAnalyzer:
         counts = [x[1] for x in sorted_counts]
 
         fig, ax1 = plt.subplots()
-        bars = ax1.bar(ranges, counts, color='b', alpha=0.6, label='Counts')
-        ax1.set_ylabel('Counts', color='b')
-        ax1.tick_params('y', colors='b')
+        bars = ax1.bar(ranges, counts, color="b", alpha=0.6, label="Counts")
+        ax1.set_ylabel("Counts", color="b")
+        ax1.tick_params("y", colors="b")
         ax1.set_xticks(range(len(ranges)))
-        ax1.set_xticklabels(ranges, rotation=-45, ha='left')
+        ax1.set_xticklabels(ranges, rotation=-45, ha="left")
 
         # 各棒グラフの上にサンプル数を表示
         for bar in bars:
             height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width() / 2, height,
-                     str(int(height)), ha='center', va='bottom', fontsize=8)
+            ax1.text(
+                bar.get_x() + bar.get_width() / 2,
+                height,
+                str(int(height)),
+                ha="center",
+                va="bottom",
+                fontsize=8,
+            )
 
         # 累積グラフ（線グラフ）
         sum_counts = []
@@ -76,13 +87,13 @@ class DatasetAnalyzer:
         sum_counts = pd.Series(sum_counts)
 
         ax2 = ax1.twinx()
-        ax2.plot(ranges, sum_counts, color='r', marker='o', label='Sum')
-        ax2.set_ylabel('Sum', color='r')
-        ax2.tick_params('y', colors='r')
+        ax2.plot(ranges, sum_counts, color="r", marker="o", label="Sum")
+        ax2.set_ylabel("Sum", color="r")
+        ax2.tick_params("y", colors="r")
         ax2.set_ylim(bottom=0)  # 折れ線グラフのメモリを0スタートにする
 
         plt.tight_layout()
-        plt.savefig(f"{path}/graph.pdf", bbox_inches='tight')
+        plt.savefig(f"{path}/graph.pdf", bbox_inches="tight")
         plt.show()
 
 
@@ -92,19 +103,24 @@ if __name__ == "__main__":
     print("only second labels : ", only_second_labels)
     analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
-    analyzer.display_answer_start_mapping(path="D:/datasets/phishing_identification/qa_results")
+    analyzer.display_answer_start_mapping(
+        path="D:/datasets/phishing_identification/qa_results"
+    )
 
     df = analyzer.get_label_percentage()
     # save to csv
-    df.to_csv("D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv", index=False)
-    pd.set_option('display.max_rows', 200)
+    df.to_csv(
+        "D:/datasets/phishing_identification/phish-html-en-qa-label-count-training.csv",
+        index=False,
+    )
+    pd.set_option("display.max_rows", 200)
     print(df[df["count"] >= 1])
     fig, ax1 = plt.subplots()
 
     # 棒グラフ (要素数)
-    ax1.bar(df["label"], df["count"], color='b', alpha=0.6, label='Counts')
-    ax1.set_ylabel('Counts', color='b')
-    ax1.tick_params('y', colors='b')
+    ax1.bar(df["label"], df["count"], color="b", alpha=0.6, label="Counts")
+    ax1.set_ylabel("Counts", color="b")
+    ax1.tick_params("y", colors="b")
     ax1.set_xticks([])
 
     percentages = df["percentage"].tolist()
@@ -117,11 +133,14 @@ if __name__ == "__main__":
     sum_percentages = pd.Series(sum_percentages)
 
     ax2 = ax1.twinx()
-    ax2.plot(df["label"], sum_percentages, color='r', marker='o', label='Percentage')
-    ax2.set_ylabel('Percentage (%)', color='r')
-    ax2.tick_params('y', colors='r')
+    ax2.plot(df["label"], sum_percentages, color="r", marker="o", label="Percentage")
+    ax2.set_ylabel("Percentage (%)", color="r")
+    ax2.tick_params("y", colors="r")
 
     plt.title("Counts and Percentages of Labels")
     plt.show()
-    plt.bar(df["label"], df["percentage"], )
+    plt.bar(
+        df["label"],
+        df["percentage"],
+    )
     plt.show()

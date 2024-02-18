@@ -8,10 +8,7 @@ from transformers import AutoTokenizer
 
 def tokenize(batch):
     return tokenizer(
-        batch["html"],
-        padding="max_length",
-        truncation=True,
-        return_tensors="pt"
+        batch["html"], padding="max_length", truncation=True, return_tensors="pt"
     )
 
 
@@ -22,11 +19,15 @@ def get_brand_token(batch):
     for j, input_ids in enumerate(batch["input_ids"]):
         passage = []
         for i in range(len(input_ids) - 2):
-            decoded_tokens = tokenizer.decode(input_ids[i:i + 3], skip_special_tokens=True)
+            decoded_tokens = tokenizer.decode(
+                input_ids[i : i + 3], skip_special_tokens=True
+            )
             passage.append(decoded_tokens)
         passage_embedding = st_model.encode(passage)
         query_embedding = st_model.encode(batch["brand"])
-        brand_tokens = passage[util.dot_score(query_embedding, passage_embedding).argmax()]
+        brand_tokens = passage[
+            util.dot_score(query_embedding, passage_embedding).argmax()
+        ]
         identified_tokens.append([brand_tokens])
         start_position = batch["html"][j].find(brand_tokens)
         if start_position == -1:
@@ -34,7 +35,11 @@ def get_brand_token(batch):
         start_positions.append([start_position])
         similarity = util.dot_score(query_embedding, passage_embedding).max()
         similarities.append(similarity)
-    return {"brand_tokens": identified_tokens, "start_position": start_positions, "similarity": similarities}
+    return {
+        "brand_tokens": identified_tokens,
+        "start_position": start_positions,
+        "similarity": similarities,
+    }
 
 
 def delete_low_similarity_samples(data: Dataset) -> Dataset:
@@ -47,10 +52,19 @@ def delete_low_similarity_samples(data: Dataset) -> Dataset:
 
 def save_sample_dataset_jsonl(data: Dataset):
     cnt = 0
-    with open("D:/datasets/phishing_identification/phish-html-en-qa-long.jsonl", "w", encoding="utf-8", errors='ignore') as f:
+    with open(
+        "D:/datasets/phishing_identification/phish-html-en-qa-long.jsonl",
+        "w",
+        encoding="utf-8",
+        errors="ignore",
+    ) as f:
         for d in data:
-            chunk = {"context": d["html"], "answer_text": d["brand_tokens"],
-                     "start_position": d["start_position"], "question": "What is the name of the website's brand?"}
+            chunk = {
+                "context": d["html"],
+                "answer_text": d["brand_tokens"],
+                "start_position": d["start_position"],
+                "question": "What is the name of the website's brand?",
+            }
             json.dump(chunk, f)
             f.write("\n")
             cnt += 1
@@ -66,7 +80,7 @@ def create_squad_like_dataset(data: Dataset) -> Dataset:
             "context": d["html"],
             "answers": {"answer_start": d["start_position"], "text": d["brand_tokens"]},
             "question": "What is the name of the website's brand?",
-            "title": d["brand"]
+            "title": d["brand"],
         }
         new_data.append(chunk)
     return Dataset.from_list(new_data)
@@ -82,7 +96,7 @@ if __name__ == "__main__":
     # load tokenizer
     tokenizer = AutoTokenizer.from_pretrained("deepset/roberta-base-squad2")
     # load sentence transformer model
-    st_model = SentenceTransformer('all-MiniLM-L6-v2')
+    st_model = SentenceTransformer("all-MiniLM-L6-v2")
 
     # tokenize html
     dataset = phish.map(tokenize, batched=True, batch_size=16)

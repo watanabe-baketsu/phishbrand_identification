@@ -1,5 +1,5 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from datasets import load_from_disk
 
 
@@ -22,19 +22,26 @@ class ResultAnalyzer:
         df_recall["recall"] = df_recall["correct_sum"] / df_recall["count"]
         df_recall = df_recall.drop(["correct_sum"], axis=1)
         # calculate precision by brand
-        df_precision = t_df.groupby("identified").agg({"correct": "sum", "identified": "count"})
+        df_precision = t_df.groupby("identified").agg(
+            {"correct": "sum", "identified": "count"}
+        )
         df_precision.columns = ["correct_sum", "identified_count"]
-        df_precision["precision"] = df_precision["correct_sum"] / df_precision["identified_count"]
+        df_precision["precision"] = (
+            df_precision["correct_sum"] / df_precision["identified_count"]
+        )
         df_precision = df_precision.drop(["correct_sum", "identified_count"], axis=1)
 
         df = pd.merge(
-            df_recall[["recall", "count"]], df_precision[["precision"]],
+            df_recall[["recall", "count"]],
+            df_precision[["precision"]],
             left_index=True,
             right_index=True,
-            how="outer"
+            how="outer",
         )
         df = df.fillna(0)
-        df["f1"] = 2 * (df["precision"] * df["recall"]) / (df["precision"] + df["recall"])
+        df["f1"] = (
+            2 * (df["precision"] * df["recall"]) / (df["precision"] + df["recall"])
+        )
         df["f1"] = df["f1"].fillna(0)
 
         df = df.sort_values(by="count", ascending=False)
@@ -47,37 +54,37 @@ class ResultAnalyzer:
 
         # countの棒グラフとrecallの折れ線グラフを重ねて表示
         ax1 = axs[0]
-        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
-        ax1.set_ylabel('Count')
+        ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
+        ax1.set_ylabel("Count")
         ax2 = ax1.twinx()
-        ax2.plot(df.index, df['recall'], 'tab:orange', label='Recall')
-        ax2.set_ylabel('Recall')
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
+        ax2.plot(df.index, df["recall"], "tab:orange", label="Recall")
+        ax2.set_ylabel("Recall")
+        ax1.legend(loc="upper left")
+        ax2.legend(loc="upper right")
 
         # countの棒グラフとprecisionの折れ線グラフを重ねて表示
         ax1 = axs[1]
-        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
-        ax1.set_ylabel('Count')
+        ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
+        ax1.set_ylabel("Count")
         ax2 = ax1.twinx()
-        ax2.plot(df.index, df['precision'], 'tab:green', label='Precision')
-        ax2.set_ylabel('Precision')
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
+        ax2.plot(df.index, df["precision"], "tab:green", label="Precision")
+        ax2.set_ylabel("Precision")
+        ax1.legend(loc="upper left")
+        ax2.legend(loc="upper right")
 
         # countの棒グラフとf1の折れ線グラフを重ねて表示
         ax1 = axs[2]
-        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
-        ax1.set_ylabel('Count')
+        ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
+        ax1.set_ylabel("Count")
         ax2 = ax1.twinx()
-        ax2.plot(df.index, df['f1'], 'tab:red', label='F1 Score')
-        ax2.set_ylabel('F1 Score')
-        ax1.legend(loc='upper left')
-        ax2.legend(loc='upper right')
+        ax2.plot(df.index, df["f1"], "tab:red", label="F1 Score")
+        ax2.set_ylabel("F1 Score")
+        ax1.legend(loc="upper left")
+        ax2.legend(loc="upper right")
 
         # X軸のラベルを非表示
         for ax in axs:
-            ax.tick_params(axis='x', labelsize=0)
+            ax.tick_params(axis="x", labelsize=0)
 
         fig.tight_layout()
         plt.show()
@@ -87,15 +94,15 @@ class ResultAnalyzer:
         fig, ax1 = plt.subplots()
 
         # countの棒グラフとrecallの折れ線グラフを重ねて表示
-        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
-        ax1.set_ylabel('Count [samples]', fontsize=14)
-        ax1.tick_params(axis='x', labelsize=0)  # X軸のラベルを非表示
+        ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
+        ax1.set_ylabel("Count [samples]", fontsize=14)
+        ax1.tick_params(axis="x", labelsize=0)  # X軸のラベルを非表示
         ax2 = ax1.twinx()
-        ax2.plot(df.index, df['recall'], 'tab:orange', label='Recall')
-        ax2.set_ylabel('Recall', fontsize=14)
-        ax1.legend(loc='lower left', fontsize=14)
-        ax2.legend(loc='lower right', fontsize=14)
-        plt.savefig(f"{path}/recall_plot.pdf", bbox_inches='tight')
+        ax2.plot(df.index, df["recall"], "tab:orange", label="Recall")
+        ax2.set_ylabel("Recall", fontsize=14)
+        ax1.legend(loc="lower left", fontsize=14)
+        ax2.legend(loc="lower right", fontsize=14)
+        plt.savefig(f"{path}/recall_plot.pdf", bbox_inches="tight")
         plt.show()
 
     @staticmethod
@@ -103,24 +110,28 @@ class ResultAnalyzer:
         fig, ax1 = plt.subplots()
 
         # countの棒グラフとprecisionの折れ線グラフを重ねて表示
-        ax1.bar(df.index, df['count'], color='tab:blue', alpha=0.6, label='Count')
-        ax1.set_ylabel('Count [samples]', fontsize=14)
-        ax1.tick_params(axis='x', labelsize=0)
+        ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
+        ax1.set_ylabel("Count [samples]", fontsize=14)
+        ax1.tick_params(axis="x", labelsize=0)
         ax2 = ax1.twinx()
-        ax2.plot(df.index, df['precision'], 'tab:green', label='Precision')
-        ax2.set_ylabel('Precision', fontsize=14)
-        ax1.legend(loc='lower left', fontsize=14)
-        ax2.legend(loc='lower right', fontsize=14)
-        plt.savefig(f"{path}/precision_plot.pdf", bbox_inches='tight')
+        ax2.plot(df.index, df["precision"], "tab:green", label="Precision")
+        ax2.set_ylabel("Precision", fontsize=14)
+        ax1.legend(loc="lower left", fontsize=14)
+        ax2.legend(loc="lower right", fontsize=14)
+        plt.savefig(f"{path}/precision_plot.pdf", bbox_inches="tight")
         plt.show()
 
     @staticmethod
-    def get_low_metrics_brand(metrics: pd.DataFrame, count_threshold: int, metrics_threshold) -> pd.DataFrame:
+    def get_low_metrics_brand(
+        metrics: pd.DataFrame, count_threshold: int, metrics_threshold
+    ) -> pd.DataFrame:
         metrics = metrics[metrics["count"] >= count_threshold]
         f1_metrics = metrics[metrics["f1"] <= metrics_threshold]
         precision_metrics = metrics[metrics["precision"] <= metrics_threshold]
         recall_metrics = metrics[metrics["recall"] <= metrics_threshold]
-        metrics = pd.concat([f1_metrics, precision_metrics, recall_metrics], axis=0).drop_duplicates()
+        metrics = pd.concat(
+            [f1_metrics, precision_metrics, recall_metrics], axis=0
+        ).drop_duplicates()
         metrics = metrics.sort_values(by="count", ascending=False)
         return metrics
 
@@ -149,10 +160,18 @@ def print_save_specified_samples(df: pd.DataFrame, file_name: str):
 
 
 def analyze_only_eval_label_samples(analyzer: ResultAnalyzer):
-    only_test_labels = ['First National Bank SA', 'Credit Agricole S.A.',
-                        'Equa bank', 'Tesco Personal Finance PLC',
-                        'IBC Bank', 'NedBank Limited', 'Gumtree',
-                        'Juno Online Services', 'Monmouth Telecom', 'ADP, LLC']
+    only_test_labels = [
+        "First National Bank SA",
+        "Credit Agricole S.A.",
+        "Equa bank",
+        "Tesco Personal Finance PLC",
+        "IBC Bank",
+        "NedBank Limited",
+        "Gumtree",
+        "Juno Online Services",
+        "Monmouth Telecom",
+        "ADP, LLC",
+    ]
     only_df = analyzer.get_specified_brands_metrics(only_test_labels)
     print(only_df)
 
@@ -161,7 +180,9 @@ def analyze_only_eval_label_samples(analyzer: ResultAnalyzer):
     print_save_specified_samples(correct_df, "only_eval_label_correct_sample.txt")
 
     print("### unseen label incorrect sammple ###")
-    incorrect_df = analyzer.get_specified_brand_incorrect_samples("Credit Agricole S.A.")
+    incorrect_df = analyzer.get_specified_brand_incorrect_samples(
+        "Credit Agricole S.A."
+    )
     print_save_specified_samples(incorrect_df, "only_eval_label_incorrect_sample.txt")
 
 
@@ -170,11 +191,15 @@ def analyze_low_metric_samples(analyzer: ResultAnalyzer):
     print(low_metrics_df)
 
     print("### low metric correct sammple ###")
-    correct_df = analyzer.get_specified_brand_correct_samples("Alaska USA Federal Credit Union")
+    correct_df = analyzer.get_specified_brand_correct_samples(
+        "Alaska USA Federal Credit Union"
+    )
     print_save_specified_samples(correct_df, "low_metric_correct_sample.txt")
 
     print("### low metric incorrect sammple ###")
-    incorrect_df = analyzer.get_specified_brand_incorrect_samples("Alaska USA Federal Credit Union")
+    incorrect_df = analyzer.get_specified_brand_incorrect_samples(
+        "Alaska USA Federal Credit Union"
+    )
     print_save_specified_samples(incorrect_df, "low_metric_incorrect_sample.txt")
 
 
