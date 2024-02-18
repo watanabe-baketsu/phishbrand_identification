@@ -199,6 +199,7 @@ class BrandInferenceProcessor:
                     }
                 )
             result_df = pd.DataFrame(results)
+            print(f"save result to {save_path}")
             result_df.to_csv(save_path, index=False)
         else:
             for data in targets:

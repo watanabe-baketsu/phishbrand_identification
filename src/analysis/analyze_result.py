@@ -49,7 +49,7 @@ class ResultAnalyzer:
         return df
 
     @staticmethod
-    def get_summary_plot(df):
+    def get_summary_plot(df, path: str):
         fig, axs = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
 
         # countの棒グラフとrecallの折れ線グラフを重ねて表示
@@ -87,6 +87,7 @@ class ResultAnalyzer:
             ax.tick_params(axis="x", labelsize=0)
 
         fig.tight_layout()
+        plt.savefig(f"{path}/summary_plot.pdf", bbox_inches="tight")
         plt.show()
 
     @staticmethod
@@ -204,25 +205,15 @@ if __name__ == "__main__":
     analyzer.get_recall_plot(metrics_df, base_path)
     analyzer.get_precision_plot(metrics_df, base_path)
 
-    only_test_labels = [
-        "First National Bank SA",
-        "Credit Agricole S.A.",
-        "Equa bank",
-        "Tesco Personal Finance PLC",
-        "IBC Bank",
-        "NedBank Limited",
-        "Gumtree",
-        "Juno Online Services",
-        "Monmouth Telecom",
-        "ADP, LLC",
-        "Chase Personal Banking",
-        "Facebook, Inc.",
-    ]
+    # only_test_labels = [
+    #     'Movistar'
+    # ]
+    only_test_labels = analyzer.df["answer"].unique().tolist()
     analyze_only_eval_label_samples(analyzer, only_test_labels)
 
     metrics_df.to_csv(
         f"{base_path}/qa_validation_result_blandsplit_metrics.csv", index=False
     )
-    analyzer.get_summary_plot(metrics_df)
+    analyzer.get_summary_plot(metrics_df, base_path)
     #
     # analyze_low_metric_samples(analyzer)
