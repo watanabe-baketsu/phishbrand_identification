@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from collections import Counter
 
 from datasets import load_from_disk
 
@@ -44,10 +45,19 @@ if __name__ == "__main__":
     cleaned_eval_dataset = QADatasetPreprocessor.remove_brands_from_dataset(
         eval_dataset, remove_brands
     )
-
     print(f"評価データセットのみに存在するブランド数: {len(only_eval_brands)}")
     print(f"評価データセットのみに存在するブランド: {only_eval_brands}")
+
+    # サンプル数が5サンプル以上のブランドに絞り込む
+    titles = [example["title"] for example in cleaned_eval_dataset]
+    brand_counts = Counter(titles)
+    brands_with_enough_samples = [brand for brand, count in brand_counts.items() if count >= 7]
+    cleaned_eval_dataset = cleaned_eval_dataset.filter(lambda example: example["title"] in brands_with_enough_samples)
+    final_brands = set(cleaned_eval_dataset["title"])
+    print(f"最終的な評価データセットのブランド数: {len(final_brands)}")
+    print(f"最終的な評価データセットのブランド: {final_brands}")
     print(f"最終的な評価データセットのサンプル数: {len(cleaned_eval_dataset)}")
+    only_eval_brands = list(final_brands)
 
     model_name = args.model_name
     processor = BrandInferenceProcessor(model_name, list(only_eval_brands))
