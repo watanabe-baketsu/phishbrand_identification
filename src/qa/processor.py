@@ -4,6 +4,7 @@ from functools import partial
 import pandas as pd
 import torch
 from datasets import DatasetDict
+from difflib import SequenceMatcher
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 
@@ -142,7 +143,7 @@ class BrandInferenceProcessor:
 
         return {"inference": answers}
 
-    def get_similar_brand(self, batch):
+    def get_similar_brand_with_sentence_trandformer(self, batch):
         identified_brands = []
         similarity = []
         for inference in batch["inference"]:
@@ -159,6 +160,25 @@ class BrandInferenceProcessor:
                 )
 
         return {"identified": identified_brands, "similarity": similarity}
+
+    def get_similar_brand_with_sequence_matcher(self, batch):
+        identified_brands = []
+        similarities = []
+        for inference in batch["inference"]:
+            max_similarity = 0
+            most_similar_brand = "other"
+            for brand in self.brand_list:
+                similarity = SequenceMatcher(None, inference.lower(), brand.lower()).ratio()
+                if similarity > max_similarity:
+                    max_similarity = similarity
+                    most_similar_brand = brand
+            similarities.append(max_similarity)
+            if max_similarity < 0.5:
+                identified_brands.append("other")
+            else:
+                identified_brands.append(most_similar_brand)
+
+        return {"identified": identified_brands, "similarity": similarities}
 
     @staticmethod
     def get_only_eval_brands(

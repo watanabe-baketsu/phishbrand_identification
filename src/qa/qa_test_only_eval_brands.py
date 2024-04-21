@@ -25,7 +25,7 @@ def evaluate_model(dataset, brands):
     processor = BrandInferenceProcessor(model_name, brands)
 
     dataset = dataset.map(processor.inference_brand, batched=True, batch_size=5)
-    dataset = dataset.map(processor.get_similar_brand, batched=True, batch_size=20)
+    dataset = dataset.map(processor.get_similar_brand_with_sentence_trandformer, batched=True, batch_size=20)
 
     correct_ans = processor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode

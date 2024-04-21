@@ -10,7 +10,7 @@ if __name__ == "__main__":
     arg_parser.add_argument(
         "--model_name",
         type=str,
-        default="/mnt/d/tuned_models/base/roberta-base-squad2/checkpoint-5000",
+        default="/mnt/d/tuned_models/basic/roberta-base-squad2/checkpoint-5000",
     )
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
     arg_parser.add_argument("--save_mode", type=bool, default=False)
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     processor = BrandInferenceProcessor(model_name, brand_list)
 
     dataset = dataset.map(processor.inference_brand, batched=True, batch_size=5)
-    dataset = dataset.map(processor.get_similar_brand, batched=True, batch_size=20)
+    dataset = dataset.map(processor.get_similar_brand_with_sentence_trandformer, batched=True, batch_size=20)
 
     correct_ans = processor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode
