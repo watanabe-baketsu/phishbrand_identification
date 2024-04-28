@@ -1,33 +1,22 @@
 from argparse import ArgumentParser
 
-import torch
 from datasets import load_from_disk
-from processor import (
-    QABrandInferenceProcessor,
-    QADatasetPreprocessor,
-    SequenceMatchBrandInferenceProcessor,
-)
+from processor import SequenceMatchBrandInferenceProcessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
-    arg_parser.add_argument(
-        "--model_name",
-        type=str,
-        default="/mnt/d/tuned_models/basic/roberta-base-squad2/checkpoint-5000",
-    )
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
     arg_parser.add_argument("--save_mode", type=bool, default=False)
     arg_parser.add_argument(
         "--save_path",
         type=str,
-        default="/mnt/d/datasets/phishing_identification/qa_results/sm_result/qa_result.csv",
+        default="/mnt/d/datasets/phishing_identification/qa_results/baseline/sm_result.csv",
     )
 
     args = arg_parser.parse_args()
     print("The following arguments are passed:")
     print(args)
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
     # load dataset
     base_path = "/mnt/d/datasets/phishing_identification"
@@ -36,21 +25,14 @@ if __name__ == "__main__":
     )
     # generate target brand list
     brand_list = list(set(dataset["title"]))
-    model_name = args.model_name
 
-    processor = QABrandInferenceProcessor(model_name, brand_list)
-    sm_processor = SequenceMatchBrandInferenceProcessor(brand_list)
+    processor = SequenceMatchBrandInferenceProcessor(brand_list)
 
     dataset = dataset.map(
-        processor.inference_brand_question_answering, batched=True, batch_size=5
-    )
-    dataset = dataset.map(
-        sm_processor.get_similar_brand_with_sequence_matcher,
-        batched=True,
-        batch_size=20,
+        processor.inference_brand_sequence_matcher, batched=True, batch_size=20
     )
 
-    correct_ans = QADatasetPreprocessor.manage_result(
+    correct_ans = processor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode
     )
 

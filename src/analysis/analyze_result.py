@@ -211,9 +211,7 @@ if __name__ == "__main__":
     only_test_labels = analyzer.df["answer"].unique().tolist()
     analyze_only_eval_label_samples(analyzer, only_test_labels)
 
-    metrics_df.to_csv(
-        f"{base_path}/sm_only_eval_metrics.csv", index=False
-    )
+    metrics_df.to_csv(f"{base_path}/sm_only_eval_metrics.csv", index=False)
     analyzer.get_summary_plot(metrics_df, base_path)
     #
     # analyze_low_metric_samples(analyzer)

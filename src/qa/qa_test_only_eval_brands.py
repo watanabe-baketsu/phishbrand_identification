@@ -1,11 +1,10 @@
 from argparse import ArgumentParser
 from collections import Counter
 
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 from datasets import load_from_disk
-
-from processor import BrandInferenceProcessor, QADatasetPreprocessor
+from processor import QABrandInferenceProcessor, QADatasetPreprocessor
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):
@@ -22,12 +21,18 @@ def filter_brands_by_sample_count(dataset, min_sample_count):
 
 def evaluate_model(dataset, brands):
     model_name = args.model_name
-    processor = BrandInferenceProcessor(model_name, brands)
+    processor = QABrandInferenceProcessor(model_name, brands)
 
-    dataset = dataset.map(processor.inference_brand, batched=True, batch_size=5)
-    dataset = dataset.map(processor.get_similar_brand_with_sentence_trandformer, batched=True, batch_size=20)
+    dataset = dataset.map(
+        processor.inference_brand_question_answering, batched=True, batch_size=5
+    )
+    dataset = dataset.map(
+        processor.get_similar_brand_with_sentence_trandformer,
+        batched=True,
+        batch_size=20,
+    )
 
-    correct_ans = processor.manage_result(
+    correct_ans = QADatasetPreprocessor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode
     )
     accuracy = correct_ans / len(dataset)
@@ -66,7 +71,7 @@ if __name__ == "__main__":
 
     eval_brands = set(eval_dataset["title"])
 
-    only_eval_brands = BrandInferenceProcessor.get_only_eval_brands(
+    only_eval_brands = QADatasetPreprocessor.get_only_eval_brands(
         train_dataset, eval_dataset
     )
     remove_brands = eval_brands - only_eval_brands
@@ -109,7 +114,7 @@ if __name__ == "__main__":
     plt.figure(figsize=(10, 6))
     plt.plot(min_sample_counts, accuracies, marker="o")
     for i, (x, y) in enumerate(zip(min_sample_counts, accuracies)):
-        plt.text(x, y+0.03, f"{y:.2f}", fontsize=10, ha="center", va="bottom")
+        plt.text(x, y + 0.03, f"{y:.2f}", fontsize=10, ha="center", va="bottom")
     plt.xlabel("Minimum Sample Count")
     plt.ylabel("Accuracy")
     x_labels = [
@@ -117,7 +122,7 @@ if __name__ == "__main__":
         for count, filtered_brands in zip(min_sample_counts, filtered_brands_list)
     ]
     plt.xticks(min_sample_counts, x_labels, rotation=45, ha="right")
-    
+
     plt.ylim(bottom=0, top=1)  # 縦軸の開始値を0に設定
     plt.grid()
     plt.tight_layout()

@@ -8,6 +8,7 @@ from datasets import Dataset, load_from_disk
 from dotenv import load_dotenv
 from openai import APIError, OpenAI
 from sentence_transformers import SentenceTransformer, util
+
 from src.gpt.prompt import system_prompt
 
 load_dotenv()

@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
+from processor import QADatasetPreprocessor
 from transformers import (
     AutoModelForQuestionAnswering,
     AutoTokenizer,
@@ -8,8 +9,6 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
-
-from processor import QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()

@@ -2,8 +2,7 @@ from argparse import ArgumentParser
 
 import torch
 from datasets import load_from_disk
-
-from processor import BrandInferenceProcessor
+from processor import QABrandInferenceProcessor, QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -35,12 +34,18 @@ if __name__ == "__main__":
     brand_list = list(set(dataset["title"]))
     model_name = args.model_name
 
-    processor = BrandInferenceProcessor(model_name, brand_list)
+    processor = QABrandInferenceProcessor(model_name, brand_list)
 
-    dataset = dataset.map(processor.inference_brand, batched=True, batch_size=5)
-    dataset = dataset.map(processor.get_similar_brand_with_sentence_trandformer, batched=True, batch_size=20)
+    dataset = dataset.map(
+        processor.inference_brand_question_answering, batched=True, batch_size=5
+    )
+    dataset = dataset.map(
+        processor.get_similar_brand_with_sentence_trandformer,
+        batched=True,
+        batch_size=20,
+    )
 
-    correct_ans = processor.manage_result(
+    correct_ans = QADatasetPreprocessor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode
     )
 

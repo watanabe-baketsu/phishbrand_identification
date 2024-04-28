@@ -1,10 +1,11 @@
 from collections import Counter
+from difflib import SequenceMatcher
 from functools import partial
 
 import pandas as pd
 import torch
 from datasets import DatasetDict
-from difflib import SequenceMatcher
+from nltk import ngrams
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
 
@@ -106,80 +107,6 @@ class QADatasetPreprocessor:
         filtered_dataset = dataset.filter(filter_function)
         return filtered_dataset
 
-
-class BrandInferenceProcessor:
-    def __init__(self, model, brand_list: list, st_model="all-MiniLM-L6-v2"):
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.model = AutoModelForQuestionAnswering.from_pretrained(model).to(
-            self.device
-        )
-        self.tokenizer = AutoTokenizer.from_pretrained(model)
-        # calculate similarity between two brand strings
-        self.st_model = SentenceTransformer(st_model)
-        self.brand_list = brand_list
-        self.passage_embedding = self.st_model.encode(brand_list)
-
-    def inference_brand(self, batch):
-        question = "What is the name of the website's brand?"
-        answers = []
-
-        for html in batch["context"]:
-            inputs = self.tokenizer(
-                question, html, return_tensors="pt", truncation=True
-            )
-
-            with torch.no_grad():
-                outputs = self.model(**inputs.to(self.device))
-
-            answer_start_index = outputs.start_logits.argmax()
-            answer_end_index = outputs.end_logits.argmax()
-
-            predict_answer_tokens = inputs.input_ids[
-                0, answer_start_index : answer_end_index + 1
-            ]
-            answer = self.tokenizer.decode(predict_answer_tokens).strip()
-            answers.append(answer)
-            # print(f"inference : {answer}")
-
-        return {"inference": answers}
-
-    def get_similar_brand_with_sentence_trandformer(self, batch):
-        identified_brands = []
-        similarity = []
-        for inference in batch["inference"]:
-            query_embedding = self.st_model.encode(inference)
-            sim = util.dot_score(query_embedding, self.passage_embedding).max()
-            similarity.append(sim)
-            if sim < 0.5:
-                identified_brands.append("other")
-            else:
-                identified_brands.append(
-                    self.brand_list[
-                        util.dot_score(query_embedding, self.passage_embedding).argmax()
-                    ]
-                )
-
-        return {"identified": identified_brands, "similarity": similarity}
-
-    def get_similar_brand_with_sequence_matcher(self, batch):
-        identified_brands = []
-        similarities = []
-        for inference in batch["inference"]:
-            max_similarity = 0
-            most_similar_brand = "other"
-            for brand in self.brand_list:
-                similarity = SequenceMatcher(None, inference.lower(), brand.lower()).ratio()
-                if similarity > max_similarity:
-                    max_similarity = similarity
-                    most_similar_brand = brand
-            similarities.append(max_similarity)
-            if max_similarity < 0.5:
-                identified_brands.append("other")
-            else:
-                identified_brands.append(most_similar_brand)
-
-        return {"identified": identified_brands, "similarity": similarities}
-
     @staticmethod
     def get_only_eval_brands(
         train_dataset: DatasetDict, eval_dataset: DatasetDict
@@ -227,3 +154,117 @@ class BrandInferenceProcessor:
                     correct_ans += 1
 
         return correct_ans
+
+
+class QABrandInferenceProcessor:
+    def __init__(self, model: str, brand_list: list, st_model="all-MiniLM-L6-v2"):
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model = AutoModelForQuestionAnswering.from_pretrained(model).to(
+            self.device
+        )
+        self.tokenizer = AutoTokenizer.from_pretrained(model)
+        # calculate similarity between two brand strings
+        self.st_model = SentenceTransformer(st_model)
+        self.brand_list = brand_list
+        self.passage_embedding = self.st_model.encode(brand_list)
+        self.max_brand_length = max([len(brand) for brand in brand_list])
+
+    def inference_brand_question_answering(self, batch):
+        question = "What is the name of the website's brand?"
+        answers = []
+
+        for html in batch["context"]:
+            inputs = self.tokenizer(
+                question, html, return_tensors="pt", truncation=True
+            )
+
+            with torch.no_grad():
+                outputs = self.model(**inputs.to(self.device))
+
+            answer_start_index = outputs.start_logits.argmax()
+            answer_end_index = outputs.end_logits.argmax()
+
+            predict_answer_tokens = inputs.input_ids[
+                0, answer_start_index : answer_end_index + 1
+            ]
+            answer = self.tokenizer.decode(predict_answer_tokens).strip()
+            answers.append(answer)
+            # print(f"inference : {answer}")
+
+        return {"inference": answers}
+
+    def get_similar_brand_with_sentence_trandformer(self, batch):
+        identified_brands = []
+        similarity = []
+        for inference in batch["inference"]:
+            query_embedding = self.st_model.encode(inference)
+            sim = util.dot_score(query_embedding, self.passage_embedding).max()
+            similarity.append(sim)
+            if sim < 0.5:
+                identified_brands.append("other")
+            else:
+                identified_brands.append(
+                    self.brand_list[
+                        util.dot_score(query_embedding, self.passage_embedding).argmax()
+                    ]
+                )
+
+        return {"identified": identified_brands, "similarity": similarity}
+
+
+class SequenceMatchBrandInferenceProcessor:
+    def __init__(self, brand_list: list):
+        self.brand_list = brand_list
+        self.max_brand_length = max([len(brand) for brand in brand_list])
+        self.min_brand_length = min([len(brand) for brand in brand_list])
+
+    def inference_brand_sequence_matcher(self, batch):
+        answers = []
+        similarities = []
+        for html in batch["context"]:
+            html_lower = html.lower()
+
+            html_substrings = []
+            for n in range(self.min_brand_length, self.max_brand_length + 1):
+                html_substrings.extend(ngrams(html_lower, n))
+            html_substrings = list(set(html_substrings))
+            print(f"substrings lengts: {len(html_substrings)}")
+
+            max_similarity = 0
+            most_similar_brand = "other"
+            for substring in html_substrings:
+                substring = "".join(substring)
+                for brand in self.brand_list:
+                    similarity = SequenceMatcher(None, substring, brand.lower()).ratio()
+                    if similarity > max_similarity:
+                        max_similarity = similarity
+                        most_similar_brand = brand
+
+            if max_similarity < 0.5:
+                answers.append("other")
+            else:
+                answers.append(most_similar_brand)
+            similarities.append(max_similarity)
+
+        return {"inference": answers, "identified": answers, "similarity": similarities}
+
+    def get_similar_brand_with_sequence_matcher(self, batch):
+        identified_brands = []
+        similarities = []
+        for inference in batch["inference"]:
+            max_similarity = 0
+            most_similar_brand = "other"
+            for brand in self.brand_list:
+                similarity = SequenceMatcher(
+                    None, inference.lower(), brand.lower()
+                ).ratio()
+                if similarity > max_similarity:
+                    max_similarity = similarity
+                    most_similar_brand = brand
+            similarities.append(max_similarity)
+            if max_similarity < 0.5:
+                identified_brands.append("other")
+            else:
+                identified_brands.append(most_similar_brand)
+
+        return {"identified": identified_brands, "similarity": similarities}

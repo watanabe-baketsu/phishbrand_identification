@@ -1,6 +1,7 @@
 import torch
 from datasets import Dataset, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
+
 from setfit import SetFitModel, SetFitTrainer
 
 
