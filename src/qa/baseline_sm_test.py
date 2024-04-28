@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
-from processor import SequenceMatchBrandInferenceProcessor
+from processor import SequenceMatchBrandInferenceProcessor, QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -29,10 +29,12 @@ if __name__ == "__main__":
     processor = SequenceMatchBrandInferenceProcessor(brand_list)
 
     dataset = dataset.map(
-        processor.inference_brand_sequence_matcher, batched=True, batch_size=20
+        processor.inference_brand_sequence_matcher,
+        batched=False, 
+        num_proc=20,
     )
 
-    correct_ans = processor.manage_result(
+    correct_ans = QADatasetPreprocessor.manage_result(
         dataset, save_path=args.save_path, save_mode=args.save_mode
     )
 

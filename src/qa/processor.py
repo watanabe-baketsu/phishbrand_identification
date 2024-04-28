@@ -228,7 +228,6 @@ class SequenceMatchBrandInferenceProcessor:
             for n in range(self.min_brand_length, self.max_brand_length + 1):
                 html_substrings.extend(ngrams(html_lower, n))
             html_substrings = list(set(html_substrings))
-            print(f"substrings lengts: {len(html_substrings)}")
 
             max_similarity = 0
             most_similar_brand = "other"
@@ -262,9 +261,6 @@ class SequenceMatchBrandInferenceProcessor:
                     max_similarity = similarity
                     most_similar_brand = brand
             similarities.append(max_similarity)
-            if max_similarity < 0.5:
-                identified_brands.append("other")
-            else:
-                identified_brands.append(most_similar_brand)
+            identified_brands.append(most_similar_brand)
 
         return {"identified": identified_brands, "similarity": similarities}
