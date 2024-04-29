@@ -5,7 +5,7 @@ from datasets import load_from_disk
 from processor import (
     QABrandInferenceProcessor,
     QADatasetPreprocessor,
-    SequenceMatchBrandInferenceProcessor,
+    BaselineBrandInferenceProcessor,
 )
 
 if __name__ == "__main__":
@@ -39,7 +39,7 @@ if __name__ == "__main__":
     model_name = args.model_name
 
     processor = QABrandInferenceProcessor(model_name, brand_list)
-    sm_processor = SequenceMatchBrandInferenceProcessor(brand_list)
+    sm_processor = BaselineBrandInferenceProcessor(brand_list)
 
     dataset = dataset.map(
         processor.inference_brand_question_answering, batched=True, batch_size=5

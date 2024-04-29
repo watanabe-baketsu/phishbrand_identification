@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 from datasets import load_from_disk
-from processor import SequenceMatchBrandInferenceProcessor, QADatasetPreprocessor
+from processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
 
 if __name__ == "__main__":
     arg_parser = ArgumentParser()
@@ -25,12 +25,14 @@ if __name__ == "__main__":
     )
     # generate target brand list
     brand_list = list(set(dataset["title"]))
+    print(f"the number of Brand List : {len(brand_list)}")
 
-    processor = SequenceMatchBrandInferenceProcessor(brand_list)
+    processor = BaselineBrandInferenceProcessor(brand_list)
 
     dataset = dataset.map(
         processor.inference_brand_sequence_matcher,
-        batched=False, 
+        batched=True,
+        batch_size=200,
         num_proc=20,
     )
 

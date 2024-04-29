@@ -1,5 +1,5 @@
 from collections import Counter
-from difflib import SequenceMatcher
+from difflib import SequenceMatcher, get_close_matches
 from functools import partial
 
 import pandas as pd
@@ -212,7 +212,7 @@ class QABrandInferenceProcessor:
         return {"identified": identified_brands, "similarity": similarity}
 
 
-class SequenceMatchBrandInferenceProcessor:
+class BaselineBrandInferenceProcessor:
     def __init__(self, brand_list: list):
         self.brand_list = brand_list
         self.max_brand_length = max([len(brand) for brand in brand_list])
@@ -222,27 +222,29 @@ class SequenceMatchBrandInferenceProcessor:
         answers = []
         similarities = []
         for html in batch["context"]:
+            html = self._remove_html_tags(html)
             html_lower = html.lower()
 
-            html_substrings = []
+            html_substrings_map = {}
             for n in range(self.min_brand_length, self.max_brand_length + 1):
-                html_substrings.extend(ngrams(html_lower, n))
-            html_substrings = list(set(html_substrings))
+                html_substrings_map[n] = set(ngrams(html_lower, n))
+                html_substrings_map[n] = [
+                    "".join(substring) for substring in html_substrings_map[n]
+                ]
 
             max_similarity = 0
             most_similar_brand = "other"
-            for substring in html_substrings:
-                substring = "".join(substring)
-                for brand in self.brand_list:
+            for brand in self.brand_list:
+                html_substrings = html_substrings_map[len(brand)]
+                candidate_substrings = get_close_matches(
+                    brand, html_substrings, n=3, cutoff=0.0
+                )
+                for substring in candidate_substrings:
                     similarity = SequenceMatcher(None, substring, brand.lower()).ratio()
                     if similarity > max_similarity:
                         max_similarity = similarity
                         most_similar_brand = brand
-
-            if max_similarity < 0.5:
-                answers.append("other")
-            else:
-                answers.append(most_similar_brand)
+            answers.append(most_similar_brand)
             similarities.append(max_similarity)
 
         return {"inference": answers, "identified": answers, "similarity": similarities}
@@ -264,3 +266,39 @@ class SequenceMatchBrandInferenceProcessor:
             identified_brands.append(most_similar_brand)
 
         return {"identified": identified_brands, "similarity": similarities}
+
+    @staticmethod
+    def _remove_html_tags(html: str) -> str:
+        tags = [
+            "head",
+            "title",
+            "body",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "p",
+            "strong",
+            "a",
+            "img",
+            "hr",
+            "table",
+            "tbody",
+            "tr",
+            "th",
+            "td",
+            "ol",
+            "ul",
+            "li",
+            "ruby",
+            "label",
+        ]
+        for tag in tags:
+            html = html.replace(f"<{tag}>", "").replace(f"</{tag}>", "")
+
+        if len(html) > 4000:
+            html = html[:4000]
+
+        return html
