@@ -3,9 +3,9 @@ from argparse import ArgumentParser
 import torch
 from datasets import load_from_disk
 from processor import (
+    BaselineBrandInferenceProcessor,
     QABrandInferenceProcessor,
     QADatasetPreprocessor,
-    BaselineBrandInferenceProcessor,
 )
 
 if __name__ == "__main__":

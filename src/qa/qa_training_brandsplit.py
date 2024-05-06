@@ -16,7 +16,9 @@ if __name__ == "__main__":
         "--model_name", type=str, default="deepset/roberta-base-squad2"
     )
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
-    arg_parser.add_argument("--output_dir", type=str, default="/mnt/d/tuned_models")
+    arg_parser.add_argument(
+        "--output_dir", type=str, default="/mnt/d/tuned_models/splitbrands"
+    )
     args = arg_parser.parse_args()
 
     model_name = args.model_name

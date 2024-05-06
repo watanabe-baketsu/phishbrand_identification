@@ -4,7 +4,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
-from processor import QADatasetPreprocessor, BaselineBrandInferenceProcessor
+from processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):
@@ -23,7 +23,10 @@ def evaluate_model(dataset, brands):
     processor = BaselineBrandInferenceProcessor(brands)
 
     dataset = dataset.map(
-        processor.inference_brand_sequence_matcher, batched=True, batch_size=5, num_proc=20
+        processor.inference_brand_sequence_matcher,
+        batched=True,
+        batch_size=5,
+        num_proc=20,
     )
 
     correct_ans = QADatasetPreprocessor.manage_result(

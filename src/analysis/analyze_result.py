@@ -193,8 +193,8 @@ def analyze_low_metric_samples(analyzer: ResultAnalyzer):
 
 
 if __name__ == "__main__":
-    base_path = "/mnt/d/datasets/phishing_identification/qa_results/sm_result"
-    path = f"{base_path}/qa_result_upper50.csv"
+    base_path = "/mnt/d/datasets/phishing_identification/setfit_results"
+    path = f"{base_path}/poc_results.csv"
     analyzer = ResultAnalyzer(path)
     print(analyzer.df.columns)
 
@@ -202,16 +202,16 @@ if __name__ == "__main__":
     metrics_df = analyzer.calc_metrics_by_brand(analyzer.df)
     print(metrics_df)
 
-    # analyzer.get_recall_plot(metrics_df, base_path)
-    # analyzer.get_precision_plot(metrics_df, base_path)
+    analyzer.get_recall_plot(metrics_df, base_path)
+    analyzer.get_precision_plot(metrics_df, base_path)
 
     # only_test_labels = [
     #     'Movistar'
     # ]
-    only_test_labels = analyzer.df["answer"].unique().tolist()
-    analyze_only_eval_label_samples(analyzer, only_test_labels)
+    # only_test_labels = analyzer.df["answer"].unique().tolist()
+    # analyze_only_eval_label_samples(analyzer, only_test_labels)
 
-    metrics_df.to_csv(f"{base_path}/sm_only_eval_metrics.csv", index=False)
+    # metrics_df.to_csv(f"{base_path}/sm_only_eval_metrics.csv", index=False)
     analyzer.get_summary_plot(metrics_df, base_path)
     #
     # analyze_low_metric_samples(analyzer)
