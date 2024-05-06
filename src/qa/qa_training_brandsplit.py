@@ -33,6 +33,8 @@ if __name__ == "__main__":
     remove_brands = preprocessor.get_low_sample_brands(dataset, 10)
     print("削除するブランド:", remove_brands)
     dataset = preprocessor.remove_brands_from_dataset(dataset, remove_brands)
+    print("訓練データセットのサイズ:", len(dataset))
+    print("削除後のブランド数:", len(set(dataset["title"])))
 
     dataset = dataset.train_test_split(test_size=0.1)
 
