@@ -1,10 +1,13 @@
-from argparse import ArgumentParser
+import argparse
+import os
+import torch
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
 from processor import QABrandInferenceProcessor, QADatasetPreprocessor
+from src.config import MODEL_DIR, PHISH_HTML_EN_QA, QA_RESULT_DIR
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):
@@ -39,33 +42,36 @@ def evaluate_model(dataset, brands):
     return accuracy
 
 
-if __name__ == "__main__":
-    arg_parser = ArgumentParser()
+def parse_args():
+    arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument(
         "--model_name",
         type=str,
-        default="/mnt/d/tuned_models/splitbrands/roberta-base-squad2/checkpoint-5000",
+        default=os.path.join(MODEL_DIR, "qa", "splitbrands", "roberta-base-squad2", "checkpoint-5000"),
     )
-    arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
+    arg_parser.add_argument("--dataset", type=str, default=PHISH_HTML_EN_QA)
     arg_parser.add_argument("--save_mode", type=bool, default=False)
     arg_parser.add_argument(
         "--save_path",
         type=str,
-        default="/mnt/d/datasets/phishing_identification/qa_results/qa_validation_result_brandsplit.csv",
+        default=os.path.join(QA_RESULT_DIR, "brandsplit", "qa_validation_result.csv"),
     )
+    return arg_parser.parse_args()
 
-    args = arg_parser.parse_args()
+
+if __name__ == "__main__":
+    args = parse_args()
     print("The following arguments are passed:")
-    print(args)
+    for k, v in vars(args).items():
+        print(f"{k}: {v}")
 
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
     # load dataset
-    base_path = "/mnt/d/datasets/phishing_identification"
-
-    train_dataset = load_from_disk(f"{base_path}/{args.dataset}")
+    train_dataset = load_from_disk(args.dataset)
     train_dataset = train_dataset.select(range(10000))
 
-    eval_dataset = load_from_disk(f"{base_path}/{args.dataset}").select(
+    eval_dataset = load_from_disk(args.dataset).select(
         range(10000, 10000 + validation_length)
     )
 

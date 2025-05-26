@@ -4,6 +4,8 @@ from datasets import Dataset, DatasetDict, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
 
 from setfit import SetFitModel, SetFitTrainer
+import config
+import os
 
 
 def load_dataset(path: str) -> dict:
@@ -101,7 +103,7 @@ def evaluate_model(model_path: str, dataset_path: str, laebl_to_brand: dict):
 
     correct = manage_result(
         eval_dataset,
-        "/mnt/d/datasets/phishing_identification/setfit_results/poc_results.csv",
+        os.path.join(config.SETFIT_RESULT_DIR, "poc_results.csv"),
         save_mode=True,
     )
     print(f"Accuracy: {correct / len(eval_dataset)}")
@@ -112,11 +114,11 @@ if __name__ == "__main__":
     model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to(
         device
     )
-    dataset_path = "/mnt/d/datasets/phishing_identification/phish-html-en-qa"
+    dataset_path = config.PHISH_HTML_EN_QA
     dataset, label_to_brand = load_dataset(dataset_path)
 
     trainer = training_model(model, dataset)
-    model_path = "/mnt/d/datasets/phishing_identification/trained_models/vanilla"
+    model_path = os.path.join(config.MODEL_DIR, "vanilla")
     trainer.model.save_pretrained(model_path)
 
     evaluate_model(model_path, dataset_path, label_to_brand)

@@ -1,10 +1,12 @@
-from argparse import ArgumentParser
+import argparse
+import os
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
 from processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
+from src.config import PHISH_HTML_EN_QA, BASELINE_RESULT_DIR
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):
@@ -36,28 +38,28 @@ def evaluate_model(dataset, brands):
     return accuracy
 
 
-if __name__ == "__main__":
-    arg_parser = ArgumentParser()
-    arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
+def parse_args():
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("--dataset", type=str, default=PHISH_HTML_EN_QA)
     arg_parser.add_argument("--save_mode", type=bool, default=False)
     arg_parser.add_argument(
         "--save_path",
         type=str,
-        default="/mnt/d/datasets/phishing_identification/qa_results/baseline/only_eval_brands.csv",
+        default=os.path.join(BASELINE_RESULT_DIR, "only_eval_brands.csv"),
     )
+    return arg_parser.parse_args()
 
-    args = arg_parser.parse_args()
+
+if __name__ == "__main__":
+    args = parse_args()
     print("The following arguments are passed:")
-    print(args)
+    for k, v in vars(args).items():
+        print(f"{k}: {v}")
 
     validation_length = 4000
     # load dataset
-    base_path = "/mnt/d/datasets/phishing_identification"
-
-    train_dataset = load_from_disk(f"{base_path}/{args.dataset}")
-    train_dataset = train_dataset.select(range(10000))
-
-    eval_dataset = load_from_disk(f"{base_path}/{args.dataset}").select(
+    train_dataset = load_from_disk(args.dataset).select(range(10000))
+    eval_dataset = load_from_disk(args.dataset).select(
         range(10000, 10000 + validation_length)
     )
 

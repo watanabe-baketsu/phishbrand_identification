@@ -8,6 +8,7 @@ from typing import Literal
 from bs4 import BeautifulSoup
 from datasets import Dataset
 from langdetect import detect
+import config
 
 
 def replace_multiple_newlines(text):
@@ -180,7 +181,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk("D:/datasets/phishing_identification/phish-html-en")
+        dataset.save_to_disk(config.PHISH_HTML_EN)
 
         return dataset
 
@@ -209,7 +210,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk("D:/datasets/phishing_identification/phish-html-pickup-en")
+        dataset.save_to_disk(config.PHISH_HTML_PICKUP_EN)
 
         return dataset
 
@@ -239,7 +240,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk("D:/datasets/phishing_identification/phish-text-en")
+        dataset.save_to_disk(config.PHISH_TEXT_EN)
 
         return dataset
 
@@ -270,7 +271,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk("D:/datasets/phishing_identification/phish-full")
+        dataset.save_to_disk(config.PHISH_FULL)
 
         return dataset
 
@@ -294,7 +295,7 @@ class DatasetGenerator:
             except Exception as e:
                 print(e)
         with open(
-            "D:/datasets/phishing_identification/training.jsonl",
+            config.TRAINING_JSONL,
             "w",
             encoding="utf-8",
             errors="ignore",
@@ -307,7 +308,7 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
 
-    phish_base_path = "D:/datasets/phishing_identification/benign_sample_30k"
+    phish_base_path = config.BENIGN_SAMPLE_30K
     phish_label = "benign"
     dataset_generator = DatasetGenerator(phish_base_path, phish_label)
     dataset_generator.generate_summarization_training_dataset()

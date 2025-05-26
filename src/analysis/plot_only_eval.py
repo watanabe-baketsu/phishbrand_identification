@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 import pandas as pd
+import config
+import os
 
 if __name__ == "__main__":
     # load results
-    qa_result_path = "/mnt/d/datasets/phishing_identification/qa_results/st_result/only_eval_result/qa_brandsplit_accuracy.csv"
-    sequencematch_result_path = "/mnt/d/datasets/phishing_identification/qa_results/baseline/only_eval_accuracy.csv"
-    setfit_result_path = "/mnt/d/datasets/phishing_identification/setfit_results/setfit_brandsplit_accuracy.csv"
+    qa_result_path = os.path.join(config.QA_RESULT_DIR, "st_result", "only_eval_result", "qa_brandsplit_accuracy.csv")
+    sequencematch_result_path = os.path.join(config.BASELINE_RESULT_DIR, "only_eval_accuracy.csv")
+    setfit_result_path = os.path.join(config.SETFIT_RESULT_DIR, "setfit_brandsplit_accuracy.csv")
     qa_results = pd.read_csv(qa_result_path)
     sequencematch_results = pd.read_csv(sequencematch_result_path)
     setfit_results = pd.read_csv(setfit_result_path)

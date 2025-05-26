@@ -14,6 +14,8 @@ src/
 ├── gpt/            # GPT-based baseline implementation
 ├── setfit/         # SetFit baseline implementation
 └── causal_lora/    # Causal LoRA baseline implementation
+
+datasets/           # Directory for storing datasets and model outputs
 ```
 
 ## Installation

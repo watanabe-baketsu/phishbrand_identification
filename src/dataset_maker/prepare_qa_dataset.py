@@ -4,6 +4,7 @@ import uuid
 from datasets import Dataset, load_from_disk
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer
+import config
 
 
 def tokenize(batch):
@@ -53,7 +54,7 @@ def delete_low_similarity_samples(data: Dataset) -> Dataset:
 def save_sample_dataset_jsonl(data: Dataset):
     cnt = 0
     with open(
-        "D:/datasets/phishing_identification/phish-html-en-qa-long.jsonl",
+        config.PHISH_HTML_EN_QA_LONG_JSONL,
         "w",
         encoding="utf-8",
         errors="ignore",
@@ -88,7 +89,7 @@ def create_squad_like_dataset(data: Dataset) -> Dataset:
 
 if __name__ == "__main__":
     # load dataset
-    dataset = load_from_disk("D:/datasets/phishing_identification/phish-html-en")
+    dataset = load_from_disk(config.PHISH_HTML_EN)
     # generate target brand list
     phish = Dataset.from_list(dataset["phish"]).shuffle()
     brand_list = list(set(phish["brand"]))
@@ -109,7 +110,7 @@ if __name__ == "__main__":
     save_sample_dataset_jsonl(dataset)
     dataset = create_squad_like_dataset(dataset)
 
-    dataset.save_to_disk("D:/datasets/phishing_identification/phish-html-en-qa")
+    dataset.save_to_disk(config.PHISH_HTML_EN_QA)
 
     for i in range(10):
         print(f"#### sample{i} : {dataset[i]['title']}")
