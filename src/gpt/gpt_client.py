@@ -1,6 +1,7 @@
 import os
 import re
 import time
+import argparse
 from os.path import dirname, join
 
 import pandas as pd
@@ -120,15 +121,23 @@ def load_checkpoint_df(checkpoint_path: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    model = "gpt-4-1106-preview"
+    parser = argparse.ArgumentParser(description='Phishing brand identification using GPT')
+    parser.add_argument('--dataset_path', type=str, required=True,
+                      help='Path to the dataset directory')
+    parser.add_argument('--model', type=str, default="gpt-4-1106-preview",
+                      help='GPT model to use (default: gpt-4-1106-preview)')
+    parser.add_argument('--output_dir', type=str, default=None,
+                      help='Directory to save results (default: same directory as dataset)')
+    args = parser.parse_args()
+
+    model = args.model
     gpt_client = GPTClient()
 
     st_model = SentenceTransformer("all-MiniLM-L6-v2")
 
     validation_length = 4000
     # load dataset
-    base_path = "D:/datasets/phishing_identification"
-    dataset = load_from_disk(f"{base_path}/phish-html-en-qa").select(
+    dataset = load_from_disk(args.dataset_path).select(
         range(10000, 10000 + validation_length)
     )
     brand_list = list(set(dataset["title"]))
@@ -138,7 +147,10 @@ if __name__ == "__main__":
     # brand = request_gpt(dataset[0]["context"], model)
     # print(brand)
 
-    checkpoint_df = load_checkpoint_df(f"{base_path}/gpt_results/{model}-result.csv")
+    output_dir = args.output_dir if args.output_dir else os.path.join(os.path.dirname(args.dataset_path), "gpt_results")
+    os.makedirs(output_dir, exist_ok=True)
+    
+    checkpoint_df = load_checkpoint_df(os.path.join(output_dir, f"{model}-result.csv"))
     # add column "inference" if not exists
     if "inference" not in checkpoint_df.columns:
         checkpoint_df["inference"] = ""
@@ -156,24 +168,24 @@ if __name__ == "__main__":
                 inference
             )
             checkpoint_df.to_csv(
-                f"{base_path}/gpt_results/{model}-result.csv", index=False
+                os.path.join(output_dir, f"{model}-result.csv"), index=False
             )
         except Exception as e:
             print(e)
             checkpoint_df.to_csv(
-                f"{base_path}/gpt_results/{model}-result.csv", index=False
+                os.path.join(output_dir, f"{model}-result.csv"), index=False
             )
 
         time.sleep(15)
         count += 1
         print(f"\r{count} / {len(targets)}", end="")
 
-    checkpoint_df.to_csv(f"{base_path}/gpt_results/{model}-result.csv", index=False)
+    checkpoint_df.to_csv(os.path.join(output_dir, f"{model}-result.csv"), index=False)
     print(f"\ndone : {len(checkpoint_df[checkpoint_df['inference'] != ''])}")
 
     dataset = Dataset.from_pandas(checkpoint_df)
     dataset = dataset.map(get_similar_brand, batched=True, batch_size=20)
-    dataset.save_to_disk(f"{base_path}/gpt_results/{model}-result")
+    dataset.save_to_disk(os.path.join(output_dir, f"{model}-result"))
 
     acc = 0
     for data in dataset:

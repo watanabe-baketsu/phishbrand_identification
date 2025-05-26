@@ -1,23 +1,19 @@
 # BrandSpotter
 
-Phishing Website Target Brand Identification using Multiple Model Approaches
+Phishing Website Target Brand Identification using Question-Answering Models
 
-BrandSpotter is a research framework for identifying target brands in phishing websites using multiple advanced approaches. This repository implements and compares three different methods for brand identification:
-
-1. GPT-based Analysis: Utilizes GPT models to analyze HTML content and extract brand information
-2. SetFit Classification: Employs SetFit for efficient few-shot learning of brand identification
-3. Causal LoRA: Implements fine-tuned causal language models for brand extraction
+BrandSpotter is a research framework for identifying target brands in phishing websites using advanced question-answering (QA) models. The framework implements a primary QA-based approach along with several baseline methods for comparison.
 
 ## Project Structure
 
 ```
 src/
-├── analysis/         # Analysis tools for model performance evaluation
-├── causal_lora/      # Causal LoRA implementation for brand extraction
-├── dataset_maker/    # Dataset creation and preprocessing utilities
-├── gpt/             # GPT-based brand identification
-├── qa/              # Question-Answering components
-└── setfit/          # SetFit model for brand classification
+├── qa/              # Main QA-based brand identification implementation
+├── analysis/        # Analysis tools for model performance evaluation
+├── dataset_maker/   # Dataset creation and preprocessing utilities
+├── gpt/            # GPT-based baseline implementation
+├── setfit/         # SetFit baseline implementation
+└── causal_lora/    # Causal LoRA baseline implementation
 ```
 
 ## Installation
@@ -44,29 +40,65 @@ The dataset preparation process includes:
 
 ```bash
 cd src/dataset_maker
-python prepare_dataset.py
+poetry run python prepare_dataset.py
 ```
 
-### Model Training and Inference
+### Main QA Model Training and Evaluation
 
-The project supports three different approaches:
+The primary approach uses a QA model for brand identification:
 
-1. GPT-based Analysis:
+1. Train the QA model:
+```bash
+cd src/qa
+poetry run python qa_training.py \
+    --model_name "deepset/roberta-base-squad2" \
+    --dataset "phish-html-en-qa" \
+    --output_dir "/path/to/output"
+```
+
+2. Evaluate the model:
+```bash
+poetry run python qa_test_sequence_matcher.py \
+    --model_name "/path/to/trained/model" \
+    --dataset "phish-html-en-qa" \
+    --save_mode True \
+    --save_path "/path/to/save/results.csv"
+```
+
+### Baseline Methods (For Comparison)
+
+The repository includes several baseline methods for comparison:
+
+1. Sequence Matcher Baseline:
+```bash
+cd src/qa
+poetry run python baseline_sm_test.py \
+    --dataset "phish-html-en-qa" \
+    --save_mode True \
+    --save_path "/path/to/save/results.csv"
+```
+
+2. GPT-based Baseline:
 ```bash
 cd src/gpt
-python gpt_client.py
+poetry run python gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-qa" --output_dir "/path/to/output"
 ```
 
-2. SetFit Classification:
+オプション:
+- `--model`: 使用するGPTモデルを指定（デフォルト: "gpt-4-1106-preview"）
+- `--dataset_path`: データセットのパス（必須）
+- `--output_dir`: 結果の保存先ディレクトリ（オプション）。指定しない場合はデータセットと同じディレクトリの`gpt_results`フォルダに保存されます。
+
+3. SetFit Baseline:
 ```bash
 cd src/setfit
-python setfit_poc.py
+poetry run python setfit_poc.py
 ```
 
-3. Causal LoRA:
+4. Causal LoRA Baseline:
 ```bash
 cd src/causal_lora
-python causal_lora_test.py
+poetry run python causal_lora_test.py
 ```
 
 ### Analysis
