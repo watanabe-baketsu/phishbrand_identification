@@ -39,8 +39,7 @@ The dataset preparation process includes:
 4. Base64 encoded content removal
 
 ```bash
-cd src/dataset_maker
-poetry run python prepare_dataset.py
+poetry run python src/dataset_maker/prepare_dataset.py
 ```
 
 ### Main QA Model Training and Evaluation
@@ -49,20 +48,31 @@ The primary approach uses a QA model for brand identification:
 
 1. Train the QA model:
 ```bash
-cd src/qa
-poetry run python qa_training.py \
+poetry run python src/qa/qa_training.py \
     --model_name "deepset/roberta-base-squad2" \
     --dataset "phish-html-en-qa" \
     --output_dir "/path/to/output"
 ```
 
 2. Evaluate the model:
+
+a. Using Sequence Matcher:
 ```bash
-poetry run python qa_test_sequence_matcher.py \
+poetry run python src/qa/qa_test_sequence_matcher.py \
     --model_name "/path/to/trained/model" \
     --dataset "phish-html-en-qa" \
     --save_mode True \
-    --save_path "/path/to/save/results.csv"
+    --save_path "/path/to/save/results_sm.csv"
+```
+
+b. Using Sentence Transformer:
+```bash
+poetry run python src/qa/qa_test_sentence_transformer.py \
+    --model_name "/path/to/trained/model" \
+    --dataset "phish-html-en-qa" \
+    --st_model_name "all-MiniLM-L6-v2" \
+    --save_mode True \
+    --save_path "/path/to/save/results_st.csv"
 ```
 
 ### Baseline Methods (For Comparison)
@@ -71,17 +81,37 @@ The repository includes several baseline methods for comparison:
 
 1. Sequence Matcher Baseline:
 ```bash
-cd src/qa
-poetry run python baseline_sm_test.py \
+# Training
+poetry run python src/qa/baseline_sm_train.py \
+    --dataset "phish-html-en-qa" \
+    --save_dir "/path/to/save/model"
+
+# Testing
+poetry run python src/qa/baseline_sm_test.py \
     --dataset "phish-html-en-qa" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"
 ```
 
-2. GPT-based Baseline:
+2. Sentence Transformer Baseline:
 ```bash
-cd src/gpt
-poetry run python gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-qa" --output_dir "/path/to/output"
+# Training
+poetry run python src/qa/baseline_st_train.py \
+    --dataset "phish-html-en-qa" \
+    --model_name "all-MiniLM-L6-v2" \
+    --save_dir "/path/to/save/model"
+
+# Testing
+poetry run python src/qa/baseline_st_test.py \
+    --dataset "phish-html-en-qa" \
+    --model_path "/path/to/saved/model" \
+    --save_mode True \
+    --save_path "/path/to/save/results.csv"
+```
+
+3. GPT-based Baseline:
+```bash
+poetry run python src/gpt/gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-qa" --output_dir "/path/to/output"
 ```
 
 オプション:
@@ -89,16 +119,36 @@ poetry run python gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-q
 - `--dataset_path`: データセットのパス（必須）
 - `--output_dir`: 結果の保存先ディレクトリ（オプション）。指定しない場合はデータセットと同じディレクトリの`gpt_results`フォルダに保存されます。
 
-3. SetFit Baseline:
+4. SetFit Baseline:
 ```bash
-cd src/setfit
-poetry run python setfit_poc.py
+# Training
+poetry run python src/setfit/setfit_train.py \
+    --dataset "phish-html-en-qa" \
+    --model_name "all-MiniLM-L6-v2" \
+    --save_dir "/path/to/save/model"
+
+# Testing
+poetry run python src/setfit/setfit_test.py \
+    --dataset "phish-html-en-qa" \
+    --model_path "/path/to/saved/model" \
+    --save_mode True \
+    --save_path "/path/to/save/results.csv"
 ```
 
-4. Causal LoRA Baseline:
+5. Causal LoRA Baseline:
 ```bash
-cd src/causal_lora
-poetry run python causal_lora_test.py
+# Training
+poetry run python src/causal_lora/causal_lora_train.py \
+    --dataset "phish-html-en-qa" \
+    --model_name "gpt2" \
+    --save_dir "/path/to/save/model"
+
+# Testing
+poetry run python src/causal_lora/causal_lora_test.py \
+    --dataset "phish-html-en-qa" \
+    --model_path "/path/to/saved/model" \
+    --save_mode True \
+    --save_path "/path/to/save/results.csv"
 ```
 
 ### Analysis
