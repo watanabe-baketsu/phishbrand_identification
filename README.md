@@ -16,7 +16,55 @@ src/
 └── causal_lora/    # Causal LoRA baseline implementation
 
 datasets/           # Directory for storing datasets and model outputs
+
+models/             # Pre-trained and fine-tuned models
+├── qa/            # Question-Answering models
+│   ├── basic/     # Basic QA model (all brands in training)
+│   │   └── roberta-base-squad2/
+│   │       └── checkpoint-5000/  # RoBERTa-base fine-tuned on SQuAD2 for brand identification
+│   └── splitbrand/  # Brand-split QA model (evaluation brands excluded from training)
+│       └── roberta-base-squad2/
+│           └── checkpoint-5000/  # RoBERTa-base trained with brand split strategy
+└── setfit/        # SetFit classification models
+    ├── vanilla/   # Standard SetFit model trained on all brands
+    └── only_eval_brands/  # SetFit model trained only on evaluation brands
 ```
+
+## Trained Models
+
+### QA Models (`models/qa/`)
+
+#### Basic QA Model (`models/qa/basic/roberta-base-squad2/checkpoint-5000/`)
+- **Base Model**: `deepset/roberta-base-squad2`
+- **Architecture**: RoBERTaForQuestionAnswering
+- **Training**: Trained for 10 epochs, 5000 steps
+- **Purpose**: Generate answers to the question "What brand is this website imitating?" from phishing website HTML content
+- **Characteristics**: Trained using data from all brands (standard training scenario)
+
+#### Brand-Split QA Model (`models/qa/splitbrand/roberta-base-squad2/checkpoint-5000/`)
+- **Base Model**: `deepset/roberta-base-squad2`
+- **Architecture**: RoBERTaForQuestionAnswering
+- **Training**: Trained on a dataset where evaluation brands are completely excluded from training data
+- **Purpose**: Evaluate model performance under challenging conditions where training and evaluation datasets contain completely different brands
+- **Characteristics**: Designed to test generalization capability to unseen brands in a realistic zero-shot brand identification scenario
+
+### SetFit Models (`models/setfit/`)
+
+#### Vanilla SetFit Model (`models/setfit/vanilla/`)
+- **Base Model**: Sentence Transformer (based on all-MiniLM-L6-v2)
+- **Method**: Few-shot learning for text classification
+- **Training**: 
+  1. Fine-tuning Sentence Transformer with contrastive learning
+  2. Training classification head
+- **Purpose**: Phishing website brand classification
+- **Characteristics**: Standard SetFit approach using data from all brands
+
+#### Evaluation Brands Only SetFit Model (`models/setfit/only_eval_brands/`)
+- **Base Model**: Sentence Transformer (based on all-MiniLM-L6-v2)
+- **Method**: Few-shot learning for text classification
+- **Training**: Trained exclusively on evaluation brands with no overlap between training and evaluation brand sets
+- **Purpose**: **Note: This model has limited practical use in the repository**. Users need to manually create their own brand-split datasets and demonstrate model training and evaluation with non-overlapping brand sets between training and evaluation phases
+- **Characteristics**: Experimental model for studying brand generalization under strict brand separation conditions
 
 ## Installation
 
@@ -47,6 +95,52 @@ poetry run python src/dataset_maker/prepare_dataset.py
 ### Main QA Model Training and Evaluation
 
 The primary approach uses a QA model for brand identification:
+
+#### Using Pre-trained Models
+
+To use the pre-trained models:
+
+a. Basic QA Model (trained on all brands):
+```bash
+# Evaluation using Sequence Matcher
+poetry run python src/qa/qa_test_sequence_matcher.py \
+    --model_name "models/qa/basic/roberta-base-squad2/checkpoint-5000" \
+    --dataset "phish-html-en-qa" \
+    --save_mode True \
+    --save_path "results/qa_basic_sm.csv"
+
+# Evaluation using Sentence Transformer
+poetry run python src/qa/qa_test_sentence_transformer.py \
+    --model_name "models/qa/basic/roberta-base-squad2/checkpoint-5000" \
+    --dataset "phish-html-en-qa" \
+    --st_model_name "all-MiniLM-L6-v2" \
+    --save_mode True \
+    --save_path "results/qa_basic_st.csv"
+```
+
+b. Brand-Split QA Model (for challenging cross-brand evaluation):
+```bash
+# Evaluation using Sequence Matcher
+poetry run python src/qa/qa_test_sequence_matcher.py \
+    --model_name "models/qa/splitbrand/roberta-base-squad2/checkpoint-5000" \
+    --dataset "phish-html-en-qa" \
+    --save_mode True \
+    --save_path "results/qa_splitbrand_sm.csv"
+
+# Evaluation using Sentence Transformer
+poetry run python src/qa/qa_test_sentence_transformer.py \
+    --model_name "models/qa/splitbrand/roberta-base-squad2/checkpoint-5000" \
+    --dataset "phish-html-en-qa" \
+    --st_model_name "all-MiniLM-L6-v2" \
+    --save_mode True \
+    --save_path "results/qa_splitbrand_st.csv"
+```
+
+**Note**: The splitbrand model is designed for evaluation under challenging conditions where the brands in training and evaluation datasets do not overlap. This tests the model's ability to generalize to completely unseen brands.
+
+#### Training New Models
+
+To train new models:
 
 1. Train the QA model:
 ```bash
@@ -122,6 +216,35 @@ poetry run python src/gpt/gpt_client.py --dataset_path "/path/to/dataset/phish-h
 - `--output_dir`: 結果の保存先ディレクトリ（オプション）。指定しない場合はデータセットと同じディレクトリの`gpt_results`フォルダに保存されます。
 
 4. SetFit Baseline:
+
+#### Using Pre-trained SetFit Models
+
+To use the pre-trained SetFit models:
+
+a. Vanilla SetFit Model (trained on all brands):
+```bash
+poetry run python src/setfit/setfit_test.py \
+    --dataset "phish-html-en-qa" \
+    --model_path "models/setfit/vanilla" \
+    --save_mode True \
+    --save_path "results/setfit_vanilla.csv"
+```
+
+b. Evaluation Brands Only SetFit Model (experimental model with brand separation):
+```bash
+poetry run python src/setfit/setfit_test.py \
+    --dataset "phish-html-en-qa" \
+    --model_path "models/setfit/only_eval_brands" \
+    --save_mode True \
+    --save_path "results/setfit_eval_brands.csv"
+```
+
+**Important Note**: The `only_eval_brands` model has limited practical use in this repository. Users should create their own brand-split datasets and demonstrate model training and evaluation with completely non-overlapping brand sets between training and evaluation phases to properly utilize this approach.
+
+#### Training New SetFit Models
+
+To train new SetFit models:
+
 ```bash
 # Training
 poetry run python src/setfit/setfit_train.py \
@@ -151,6 +274,54 @@ poetry run python src/causal_lora/causal_lora_test.py \
     --model_path "/path/to/saved/model" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"
+```
+
+### Model Usage Examples
+
+#### QA Model Direct Usage
+
+Example of using the trained QA model directly:
+
+```python
+from transformers import AutoTokenizer, AutoModelForQuestionAnswering
+import torch
+
+# Load model and tokenizer
+model_path = "models/qa/basic/roberta-base-squad2/checkpoint-5000"
+tokenizer = AutoTokenizer.from_pretrained(model_path)
+model = AutoModelForQuestionAnswering.from_pretrained(model_path)
+
+# Set question and context
+question = "What brand is this website imitating?"
+context = "Your HTML content here..."
+
+# Run inference
+inputs = tokenizer(question, context, return_tensors="pt", truncation=True, max_length=512)
+with torch.no_grad():
+    outputs = model(**inputs)
+
+# Extract answer
+start_scores = outputs.start_logits
+end_scores = outputs.end_logits
+start_idx = torch.argmax(start_scores)
+end_idx = torch.argmax(end_scores)
+answer = tokenizer.decode(inputs["input_ids"][0][start_idx:end_idx+1])
+```
+
+#### SetFit Model Direct Usage
+
+Example of using the trained SetFit model directly:
+
+```python
+from setfit import SetFitModel
+
+# Load model
+model = SetFitModel.from_pretrained("models/setfit/vanilla")
+
+# Run inference
+texts = ["Your HTML content here..."]
+predictions = model(texts)
+print(f"Predicted brand: {predictions}")
 ```
 
 ### Analysis
