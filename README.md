@@ -210,10 +210,10 @@ poetry run python src/qa/baseline_st_test.py \
 poetry run python src/gpt/gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-qa" --output_dir "/path/to/output"
 ```
 
-オプション:
-- `--model`: 使用するGPTモデルを指定（デフォルト: "gpt-4-1106-preview"）
-- `--dataset_path`: データセットのパス（必須）
-- `--output_dir`: 結果の保存先ディレクトリ（オプション）。指定しない場合はデータセットと同じディレクトリの`gpt_results`フォルダに保存されます。
+Options:
+- `--model`: Specify the GPT model to use (default: "gpt-4-1106-preview")
+- `--dataset_path`: Path to the dataset (required)
+- `--output_dir`: Output directory for results (optional). If not specified, results will be saved to the `gpt_results` folder in the same directory as the dataset.
 
 4. SetFit Baseline:
 
