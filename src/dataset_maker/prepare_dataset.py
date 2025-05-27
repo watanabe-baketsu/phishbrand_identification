@@ -8,7 +8,7 @@ from typing import Literal
 from bs4 import BeautifulSoup
 from datasets import Dataset
 from langdetect import detect
-import config
+from src.config import BENIGN_SAMPLE_30K, PHISH_HTML_EN, PHISH_HTML_PICKUP_EN, PHISH_TEXT_EN, PHISH_FULL, TRAINING_JSONL
 
 
 def replace_multiple_newlines(text):
@@ -181,7 +181,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk(config.PHISH_HTML_EN)
+        dataset.save_to_disk(PHISH_HTML_EN)
 
         return dataset
 
@@ -210,7 +210,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk(config.PHISH_HTML_PICKUP_EN)
+        dataset.save_to_disk(PHISH_HTML_PICKUP_EN)
 
         return dataset
 
@@ -240,7 +240,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk(config.PHISH_TEXT_EN)
+        dataset.save_to_disk(PHISH_TEXT_EN)
 
         return dataset
 
@@ -271,7 +271,7 @@ class DatasetGenerator:
                 print(e)
         dataset = Dataset.from_dict({self.label: Dataset.from_list(dataset)})
 
-        dataset.save_to_disk(config.PHISH_FULL)
+        dataset.save_to_disk(PHISH_FULL)
 
         return dataset
 
@@ -295,7 +295,7 @@ class DatasetGenerator:
             except Exception as e:
                 print(e)
         with open(
-            config.TRAINING_JSONL,
+            TRAINING_JSONL,
             "w",
             encoding="utf-8",
             errors="ignore",
@@ -308,7 +308,7 @@ class DatasetGenerator:
 
 if __name__ == "__main__":
 
-    phish_base_path = config.BENIGN_SAMPLE_30K
+    phish_base_path = BENIGN_SAMPLE_30K
     phish_label = "benign"
     dataset_generator = DatasetGenerator(phish_base_path, phish_label)
     dataset_generator.generate_summarization_training_dataset()

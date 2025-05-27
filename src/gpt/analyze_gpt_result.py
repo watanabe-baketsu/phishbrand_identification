@@ -1,5 +1,5 @@
 from analysis.analyze_result import ResultAnalyzer
-import config
+from src.config import GPT_35_RESULT_DIR, GPT_4_RESULT_DIR
 
 
 class GPTResultAnalyzer(ResultAnalyzer):
@@ -25,8 +25,8 @@ def gpt_x_analyze(path: str):
 
 
 def main():
-    gpt_35_result_path = config.GPT_35_RESULT_DIR
-    gpt_4_result_path = config.GPT_4_RESULT_DIR
+    gpt_35_result_path = GPT_35_RESULT_DIR
+    gpt_4_result_path = GPT_4_RESULT_DIR
 
     gpt_x_analyze(gpt_35_result_path)
     gpt_x_analyze(gpt_4_result_path)

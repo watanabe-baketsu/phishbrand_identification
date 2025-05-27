@@ -6,9 +6,9 @@ import torch
 from datasets import Dataset, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
 
-from qa.processor import QADatasetPreprocessor
+from src.qa.processor import QADatasetPreprocessor
 from setfit import SetFitModel, SetFitTrainer
-import config
+from src.config import MODEL_DIR, PHISH_HTML_EN_QA
 import os
 
 
@@ -177,11 +177,11 @@ if __name__ == "__main__":
     model = SetFitModel.from_pretrained("sentence-transformers/all-MiniLM-L6-v2").to(
         device
     )
-    dataset_path = config.PHISH_HTML_EN_QA
+    dataset_path = PHISH_HTML_EN_QA
     dataset, label_to_brand = load_dataset(dataset_path)
 
     trainer = training_model(model, dataset)
 
-    save_path = os.path.join(config.MODEL_DIR, "only_eval_brands")
+    save_path = os.path.join(MODEL_DIR, "only_eval_brands")
     trainer.model.save_pretrained(save_path)
     evaluate_model_by_sample_count(save_path, dataset_path, label_to_brand)

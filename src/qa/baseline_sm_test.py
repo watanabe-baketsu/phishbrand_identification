@@ -1,7 +1,7 @@
 import argparse
 import os
 from datasets import load_from_disk
-from processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
+from src.qa.processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
 from src.config import BASELINE_RESULT_DIR, PHISH_HTML_EN_QA
 
 def parse_args():

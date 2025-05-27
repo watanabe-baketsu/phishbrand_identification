@@ -1,7 +1,7 @@
 import argparse
 import os
 from datasets import load_from_disk
-from processor import QADatasetPreprocessor
+from src.qa.processor import QADatasetPreprocessor
 from transformers import (
     AutoModelForQuestionAnswering,
     AutoTokenizer,

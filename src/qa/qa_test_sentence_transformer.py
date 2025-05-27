@@ -2,7 +2,7 @@ import argparse
 import os
 import torch
 from datasets import load_from_disk
-from processor import QABrandInferenceProcessor, QADatasetPreprocessor
+from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA, QA_RESULT_DIR
 
 def parse_args():
@@ -27,7 +27,9 @@ if __name__ == "__main__":
     for k, v in vars(args).items():
         print(f"{k}: {v}")
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    # If you don't have MPS (Apple Silicon), you can use CUDA.
+    # device = "cuda" if torch.cuda.is_available() else "cpu"
     validation_length = 4000
     # load dataset
     dataset = load_from_disk(args.dataset).select(

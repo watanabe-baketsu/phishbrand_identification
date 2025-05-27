@@ -3,7 +3,7 @@ from collections import Counter
 import pandas as pd
 from datasets import load_from_disk
 from matplotlib import pyplot as plt
-import config
+from src.config import PHISH_HTML_EN_QA, PHISH_HTML_EN_QA_LABEL_COUNT_CSV, QA_RESULT_DIR
 
 
 class DatasetAnalyzer:
@@ -99,19 +99,19 @@ class DatasetAnalyzer:
 
 
 if __name__ == "__main__":
-    analyzer = DatasetAnalyzer(config.PHISH_HTML_EN_QA)
+    analyzer = DatasetAnalyzer(PHISH_HTML_EN_QA)
     only_second_labels = analyzer.get_only_second_label(0, 10000, 10000, 14000)
     print("only second labels : ", only_second_labels)
     analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
     analyzer.display_answer_start_mapping(
-        path=config.QA_RESULT_DIR
+        path=QA_RESULT_DIR
     )
 
     df = analyzer.get_label_percentage()
     # save to csv
     df.to_csv(
-        config.PHISH_HTML_EN_QA_LABEL_COUNT_CSV,
+        PHISH_HTML_EN_QA_LABEL_COUNT_CSV,
         index=False,
     )
     pd.set_option("display.max_rows", 200)

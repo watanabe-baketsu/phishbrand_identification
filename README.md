@@ -89,7 +89,7 @@ The dataset preparation process includes:
 4. Base64 encoded content removal
 
 ```bash
-poetry run python src/dataset_maker/prepare_dataset.py
+poetry run python -m src.dataset_maker.prepare_dataset
 ```
 
 ### Main QA Model Training and Evaluation
@@ -103,16 +103,16 @@ To use the pre-trained models:
 a. Basic QA Model (trained on all brands):
 ```bash
 # Evaluation using Sequence Matcher
-poetry run python src/qa/qa_test_sequence_matcher.py \
+poetry run python -m src.qa.qa_test_sequence_matcher \
     --model_name "models/qa/basic/roberta-base-squad2/checkpoint-5000" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --save_mode True \
     --save_path "results/qa_basic_sm.csv"
 
 # Evaluation using Sentence Transformer
-poetry run python src/qa/qa_test_sentence_transformer.py \
+poetry run python -m src.qa.qa_test_sentence_transformer \
     --model_name "models/qa/basic/roberta-base-squad2/checkpoint-5000" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --st_model_name "all-MiniLM-L6-v2" \
     --save_mode True \
     --save_path "results/qa_basic_st.csv"
@@ -121,16 +121,16 @@ poetry run python src/qa/qa_test_sentence_transformer.py \
 b. Brand-Split QA Model (for challenging cross-brand evaluation):
 ```bash
 # Evaluation using Sequence Matcher
-poetry run python src/qa/qa_test_sequence_matcher.py \
+poetry run python -m src.qa.qa_test_sequence_matcher \
     --model_name "models/qa/splitbrand/roberta-base-squad2/checkpoint-5000" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --save_mode True \
     --save_path "results/qa_splitbrand_sm.csv"
 
 # Evaluation using Sentence Transformer
-poetry run python src/qa/qa_test_sentence_transformer.py \
+poetry run python -m src.qa.qa_test_sentence_transformer \
     --model_name "models/qa/splitbrand/roberta-base-squad2/checkpoint-5000" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --st_model_name "all-MiniLM-L6-v2" \
     --save_mode True \
     --save_path "results/qa_splitbrand_st.csv"
@@ -144,9 +144,9 @@ To train new models:
 
 1. Train the QA model:
 ```bash
-poetry run python src/qa/qa_training.py \
+poetry run python -m src.qa.qa_training \
     --model_name "deepset/roberta-base-squad2" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --output_dir "/path/to/output"
 ```
 
@@ -154,18 +154,18 @@ poetry run python src/qa/qa_training.py \
 
 a. Using Sequence Matcher:
 ```bash
-poetry run python src/qa/qa_test_sequence_matcher.py \
+poetry run python -m src.qa.qa_test_sequence_matcher \
     --model_name "/path/to/trained/model" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --save_mode True \
     --save_path "/path/to/save/results_sm.csv"
 ```
 
 b. Using Sentence Transformer:
 ```bash
-poetry run python src/qa/qa_test_sentence_transformer.py \
+poetry run python -m src.qa.qa_test_sentence_transformer \
     --model_name "/path/to/trained/model" \
-    --dataset "phish-html-en-qa" \
+    --dataset "datasets/phish-html-en-qa" \
     --st_model_name "all-MiniLM-L6-v2" \
     --save_mode True \
     --save_path "/path/to/save/results_st.csv"
@@ -178,13 +178,13 @@ The repository includes several baseline methods for comparison:
 1. Sequence Matcher Baseline:
 ```bash
 # Training
-poetry run python src/qa/baseline_sm_train.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.qa.baseline_sm_train \
+    --dataset "datasets/phish-html-en-qa" \
     --save_dir "/path/to/save/model"
 
 # Testing
-poetry run python src/qa/baseline_sm_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.qa.baseline_sm_test \
+    --dataset "datasets/phish-html-en-qa" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"
 ```
@@ -192,14 +192,14 @@ poetry run python src/qa/baseline_sm_test.py \
 2. Sentence Transformer Baseline:
 ```bash
 # Training
-poetry run python src/qa/baseline_st_train.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.qa.baseline_st_train \
+    --dataset "datasets/phish-html-en-qa" \
     --model_name "all-MiniLM-L6-v2" \
     --save_dir "/path/to/save/model"
 
 # Testing
-poetry run python src/qa/baseline_st_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.qa.baseline_st_test \
+    --dataset "datasets/phish-html-en-qa" \
     --model_path "/path/to/saved/model" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"
@@ -207,7 +207,7 @@ poetry run python src/qa/baseline_st_test.py \
 
 3. GPT-based Baseline:
 ```bash
-poetry run python src/gpt/gpt_client.py --dataset_path "/path/to/dataset/phish-html-en-qa" --output_dir "/path/to/output"
+poetry run python -m src.gpt.gpt_client --dataset_path "datasets/phish-html-en-qa" --output_dir "/path/to/output"
 ```
 
 Options:
@@ -223,8 +223,8 @@ To use the pre-trained SetFit models:
 
 a. Vanilla SetFit Model (trained on all brands):
 ```bash
-poetry run python src/setfit/setfit_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.setfit.setfit_test \
+    --dataset "datasets/phish-html-en-qa" \
     --model_path "models/setfit/vanilla" \
     --save_mode True \
     --save_path "results/setfit_vanilla.csv"
@@ -232,8 +232,8 @@ poetry run python src/setfit/setfit_test.py \
 
 b. Evaluation Brands Only SetFit Model (experimental model with brand separation):
 ```bash
-poetry run python src/setfit/setfit_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.setfit.setfit_test \
+    --dataset "datasets/phish-html-en-qa" \
     --model_path "models/setfit/only_eval_brands" \
     --save_mode True \
     --save_path "results/setfit_eval_brands.csv"
@@ -247,14 +247,14 @@ To train new SetFit models:
 
 ```bash
 # Training
-poetry run python src/setfit/setfit_train.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.setfit.setfit_train \
+    --dataset "datasets/phish-html-en-qa" \
     --model_name "all-MiniLM-L6-v2" \
     --save_dir "/path/to/save/model"
 
 # Testing
-poetry run python src/setfit/setfit_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.setfit.setfit_test \
+    --dataset "datasets/phish-html-en-qa" \
     --model_path "/path/to/saved/model" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"
@@ -263,14 +263,14 @@ poetry run python src/setfit/setfit_test.py \
 5. Causal LoRA Baseline:
 ```bash
 # Training
-poetry run python src/causal_lora/causal_lora_train.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.causal_lora.causal_lora_train \
+    --dataset "datasets/phish-html-en-qa" \
     --model_name "gpt2" \
     --save_dir "/path/to/save/model"
 
 # Testing
-poetry run python src/causal_lora/causal_lora_test.py \
-    --dataset "phish-html-en-qa" \
+poetry run python -m src.causal_lora.causal_lora_test \
+    --dataset "datasets/phish-html-en-qa" \
     --model_path "/path/to/saved/model" \
     --save_mode True \
     --save_path "/path/to/save/results.csv"

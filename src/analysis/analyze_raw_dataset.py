@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from langdetect import LangDetectException, detect
-import config
+from src.config import PHISHPEDIA_VANILLA
 
 
 class RawDatasetAnalysis:
@@ -177,7 +177,7 @@ def analyze_brand_stats(path: str):
 
 
 def main():
-    path = config.PHISHPEDIA_VANILLA
+    path = PHISHPEDIA_VANILLA
     # ProcessPoolExecutorを使用して並列処理を行う
     with ProcessPoolExecutor() as executor:
         # 各関数を並列に実行するためのFutureオブジェクトを取得

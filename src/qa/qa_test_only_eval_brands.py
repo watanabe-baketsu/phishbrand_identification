@@ -6,7 +6,7 @@ from collections import Counter
 import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
-from processor import QABrandInferenceProcessor, QADatasetPreprocessor
+from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA, QA_RESULT_DIR
 
 

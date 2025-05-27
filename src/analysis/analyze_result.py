@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
-import config
+from src.config import SETFIT_RESULT_DIR
 import os
 
 
@@ -157,7 +157,7 @@ class ResultAnalyzer:
 def print_save_specified_samples(df: pd.DataFrame, file_name: str):
     print(f"inference : {df['inference'].tolist()[0]}")
     print(f"identified : {df['identified'].tolist()[0]}")
-    with open(os.path.join(config.SETFIT_RESULT_DIR, file_name), "w", encoding="utf-8") as f:
+    with open(os.path.join(SETFIT_RESULT_DIR, file_name), "w", encoding="utf-8") as f:
         f.write(df["html"].tolist()[0])
     print("")
 
@@ -195,7 +195,7 @@ def analyze_low_metric_samples(analyzer: ResultAnalyzer):
 
 
 if __name__ == "__main__":
-    base_path = config.SETFIT_RESULT_DIR
+    base_path = SETFIT_RESULT_DIR
     path = os.path.join(base_path, "poc_results.csv")
     analyzer = ResultAnalyzer(path)
     print(analyzer.df.columns)

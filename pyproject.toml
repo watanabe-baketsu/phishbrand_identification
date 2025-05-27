@@ -12,9 +12,6 @@ datasets = "^2.14.5"
 pillow = "^10.0.1"
 beautifulsoup4 = "^4.12.2"
 sentence-transformers = "^2.2.2"
-torch = {version = "^2.0.1+cu118", source = "torch_cu118"}
-torchvision = {version = "^0.15.2+cu118", source = "torch_cu118"}
-torchaudio = {version = "^2.0.2+cu118", source = "torch_cu118"}
 langdetect = "^1.0.9"
 protobuf = "^4.24.3"
 setfit = "^0.7.0"
@@ -27,13 +24,10 @@ chardet = "^5.2.0"
 black = "^24.2.0"
 isort = "^5.13.2"
 flake8 = "^7.0.0"
+torch = "^2.7.0"
+torchaudio = "^2.7.0"
+torchvision = "^0.22.0"
 
-
-
-[[tool.poetry.source]]
-name = "torch_cu118"
-url = "https://download.pytorch.org/whl/cu118"
-priority = "explicit"
 
 [build-system]
 requires = ["poetry-core"]
