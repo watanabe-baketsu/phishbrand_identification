@@ -41,12 +41,12 @@ if __name__ == "__main__":
     dataset = load_from_disk(args.dataset).select(range(10000))
     preprocessor = QADatasetPreprocessor(tokenizer)
 
-    # 下から10%のサンプル数の少ないブランドを削除(後のモデルの耐性評価で使用するため)
+    # Remove brands with the lowest 10% sample count (for later model robustness evaluation)
     remove_brands = preprocessor.get_low_sample_brands(dataset, 10)
-    print("削除するブランド:", remove_brands)
+    print("Brands to remove:", remove_brands)
     dataset = preprocessor.remove_brands_from_dataset(dataset, remove_brands)
-    print("訓練データセットのサイズ:", len(dataset))
-    print("削除後のブランド数:", len(set(dataset["title"])))
+    print("Training dataset size:", len(dataset))
+    print("Number of brands after removal:", len(set(dataset["title"])))
 
     dataset = dataset.train_test_split(test_size=0.1)
 
@@ -58,8 +58,8 @@ if __name__ == "__main__":
 
     data_collator = DefaultDataCollator()
 
-    print("訓練データセットのサイズ:", len(dataset["train"]))
-    print("テストデータセットのサイズ:", len(dataset["test"]))
+    print("Training dataset size:", len(dataset["train"]))
+    print("Test dataset size:", len(dataset["test"]))
 
     training_args = TrainingArguments(
         output_dir=f"{args.output_dir}/{model_name.split('/')[-1]}",

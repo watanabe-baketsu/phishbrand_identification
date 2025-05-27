@@ -50,16 +50,16 @@ class RawDatasetAnalysis:
         ranges = [str(x[0]) + "-" + str(x[0] + range_size) for x in sorted_counts]
         counts = [x[1] for x in sorted_counts]
 
-        fig, ax1 = plt.subplots()  # グラフのサイズを調整
+        fig, ax1 = plt.subplots()  # Adjust graph size
         ax1.bar(ranges, counts, color="b", alpha=0.6, label="Counts")
         ax1.set_ylabel("Counts", color="b", fontsize=8)
         ax1.tick_params(
             "y", colors="b", labelsize=8
-        )  # y軸の目盛りサイズをフォントサイズ8に設定
+        )  # Set y-axis tick size to font size 8
         ax1.set_xticks(range(len(ranges)))
         ax1.set_xticklabels(ranges, rotation=-90, ha="left", fontsize=6)
 
-        # 累積グラフ（線グラフ）
+        # Cumulative graph (line graph)
         sum_counts = []
         sum_count = 0
         for count in counts:
@@ -73,8 +73,8 @@ class RawDatasetAnalysis:
         ax2.set_ylabel("Sum", color="r", fontsize=8)
         ax2.tick_params(
             "y", colors="r", labelsize=8
-        )  # y軸の目盛りサイズをフォントサイズ8に設定
-        ax2.set_ylim(bottom=0)  # 折れ線グラフのメモリを0スタートにする
+        )  # Set y-axis tick size to font size 8
+        ax2.set_ylim(bottom=0)  # Set the line graph scale to start from 0
 
         plt.tight_layout()
         plt.savefig("file_lengths_distribution.pdf", bbox_inches="tight")
@@ -103,7 +103,7 @@ class RawDatasetAnalysis:
         bars = plt.bar(keys, values)
         plt.xlabel("Languages")
         plt.ylabel("File count")
-        # 各棒グラフの上にサンプル数を表示
+        # Display sample count above each bar graph
         for bar in bars:
             height = bar.get_height()
             plt.text(
@@ -132,7 +132,7 @@ class RawDatasetAnalysis:
                 except Exception as e:
                     print(f"Error while reading file {file}: {e}")
 
-        # サンプル数の多い順にブランドを並べ替え
+        # Sort brands in descending order of sample count
         sorted_brand_counts = sorted(
             brand_counts.items(), key=lambda x: x[1], reverse=True
         )
@@ -144,12 +144,12 @@ class RawDatasetAnalysis:
         ax1.bar(keys, values, color="b", label="Count")
         ax1.set_ylabel("File count")
         ax1.tick_params("y", colors="b")
-        ax1.set_xticks([])  # X軸のブランド名を表示しない
+        ax1.set_xticks([])  # Do not display brand names on X-axis
 
-        # 累積グラフ（線グラフ）
+        # Cumulative graph (line graph)
         sum_counts = [
             sum(values[: i + 1]) for i in range(len(values))
-        ]  # 累積サンプル数を計算
+        ]  # Calculate cumulative sample count
         ax2 = ax1.twinx()
         ax2.plot(keys, sum_counts, color="r", marker="o", label="Sum")
         ax2.set_ylabel("Sum", color="r")
@@ -179,9 +179,9 @@ def analyze_brand_stats(path: str):
 
 def main():
     path = PHISHPEDIA_VANILLA
-    # ProcessPoolExecutorを使用して並列処理を行う
+    # Use ProcessPoolExecutor for parallel processing
     with ProcessPoolExecutor() as executor:
-        # 各関数を並列に実行するためのFutureオブジェクトを取得
+        # Get Future objects to execute each function in parallel
         executor.submit(analyze_char_stats, path)
         # executor.submit(analyze_lang_stats, path)
         # executor.submit(analyze_brand_stats, path)

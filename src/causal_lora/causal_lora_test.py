@@ -22,7 +22,7 @@ def get_inference(batch):
         predicted_token_ids = torch.argmax(outputs.logits, dim=-1)
         decoded = tokenizer.decode(predicted_token_ids[0])
 
-        # レスポンス内容のみ抽出
+        # Extract response content only
         sentinel = "## Answer"
         sentinel_loc = decoded.find(sentinel)
         result = decoded[sentinel_loc + len(sentinel) :]

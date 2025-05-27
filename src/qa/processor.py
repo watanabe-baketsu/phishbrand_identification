@@ -71,7 +71,7 @@ class QADatasetPreprocessor:
 
     @staticmethod
     def filter_brands(example, brands_to_remove: list) -> bool:
-        # どのブランド名も含まない場合にTrueを返す
+        # Return True if no brand names are included
         return not any(brand in example["title"] for brand in brands_to_remove)
 
     @staticmethod
@@ -79,15 +79,15 @@ class QADatasetPreprocessor:
         dataset: DatasetDict, threshold_percentage: float = 10.0
     ) -> list:
         brand_counts = Counter(dataset["title"])
-        # サンプル数が少ない順にブランドをソート
+        # Sort brands in ascending order of sample count
         sorted_brands = sorted(brand_counts.items(), key=lambda x: x[1])
 
-        # 全体のサンプル数
+        # Total number of samples
         total_samples = len(dataset)
-        # 目標とするサンプル数
+        # Target number of samples
         target_samples = total_samples * (threshold_percentage / 100)
 
-        # サンプル数の合計が目標を超えるまでブランドを取り出す
+        # Extract brands until the total sample count exceeds the target
         accumulated_samples = 0
         low_sample_brands = []
         for brand, count in sorted_brands:

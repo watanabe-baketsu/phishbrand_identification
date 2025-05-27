@@ -56,7 +56,7 @@ class ResultAnalyzer:
     def get_summary_plot(df, path: str):
         fig, axs = plt.subplots(3, 1, figsize=(10, 15), sharex=True)
 
-        # countの棒グラフとrecallの折れ線グラフを重ねて表示
+        # Display count bar graph and recall line graph overlaid
         ax1 = axs[0]
         ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
         ax1.set_ylabel("Count")
@@ -66,7 +66,7 @@ class ResultAnalyzer:
         ax1.legend(loc="upper left")
         ax2.legend(loc="upper right")
 
-        # countの棒グラフとprecisionの折れ線グラフを重ねて表示
+        # Display count bar graph and precision line graph overlaid
         ax1 = axs[1]
         ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
         ax1.set_ylabel("Count")
@@ -76,7 +76,7 @@ class ResultAnalyzer:
         ax1.legend(loc="upper left")
         ax2.legend(loc="upper right")
 
-        # countの棒グラフとf1の折れ線グラフを重ねて表示
+        # Display count bar graph and f1 line graph overlaid
         ax1 = axs[2]
         ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
         ax1.set_ylabel("Count")
@@ -86,7 +86,7 @@ class ResultAnalyzer:
         ax1.legend(loc="upper left")
         ax2.legend(loc="upper right")
 
-        # X軸のラベルを非表示
+        # Hide X-axis labels
         for ax in axs:
             ax.tick_params(axis="x", labelsize=0)
 
@@ -98,10 +98,10 @@ class ResultAnalyzer:
     def get_recall_plot(df: pd.DataFrame, path: str):
         fig, ax1 = plt.subplots()
 
-        # countの棒グラフとrecallの折れ線グラフを重ねて表示
+        # Display count bar graph and recall line graph overlaid
         ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
         ax1.set_ylabel("Count [samples]", fontsize=14)
-        ax1.tick_params(axis="x", labelsize=0)  # X軸のラベルを非表示
+        ax1.tick_params(axis="x", labelsize=0)  # Hide X-axis labels
         ax2 = ax1.twinx()
         ax2.plot(df.index, df["recall"], "tab:orange", label="Recall")
         ax2.set_ylabel("Recall", fontsize=14)
@@ -114,7 +114,7 @@ class ResultAnalyzer:
     def get_precision_plot(df: pd.DataFrame, path: str):
         fig, ax1 = plt.subplots()
 
-        # countの棒グラフとprecisionの折れ線グラフを重ねて表示
+        # Display count bar graph and precision line graph overlaid
         ax1.bar(df.index, df["count"], color="tab:blue", alpha=0.6, label="Count")
         ax1.set_ylabel("Count [samples]", fontsize=14)
         ax1.tick_params(axis="x", labelsize=0)

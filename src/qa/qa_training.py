@@ -48,8 +48,8 @@ if __name__ == "__main__":
 
     data_collator = DefaultDataCollator()
 
-    print("訓練データセットのサイズ:", len(dataset["train"]))
-    print("テストデータセットのサイズ:", len(dataset["test"]))
+    print("Training dataset size:", len(dataset["train"]))
+    print("Test dataset size:", len(dataset["test"]))
 
     training_args = TrainingArguments(
         output_dir=f"{args.output_dir}/{model_name.split('/')[-1]}",

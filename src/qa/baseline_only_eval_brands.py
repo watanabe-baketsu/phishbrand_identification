@@ -74,8 +74,10 @@ if __name__ == "__main__":
     cleaned_eval_dataset = QADatasetPreprocessor.remove_brands_from_dataset(
         eval_dataset, remove_brands
     )
-    print(f"評価データセットのみに存在するブランド数: {len(only_eval_brands)}")
-    print(f"評価データセットのみに存在するブランド: {only_eval_brands}")
+    print(
+        f"Number of brands existing only in evaluation dataset: {len(only_eval_brands)}"
+    )
+    print(f"Brands existing only in evaluation dataset: {only_eval_brands}")
 
     min_sample_counts = range(1, 16)
     accuracies = []
@@ -86,17 +88,17 @@ if __name__ == "__main__":
         )
         filtered_brands_list.append(filtered_brands)
         print(
-            f"最終的な評価データセットのブランド数 (サンプル数 >= {min_sample_count}): {len(filtered_brands)}"
+            f"Final evaluation dataset brand count (sample count >= {min_sample_count}): {len(filtered_brands)}"
         )
         print(
-            f"最終的な評価データセットのサンプル数 (サンプル数 >= {min_sample_count}): {len(filtered_eval_dataset)}"
+            f"Final evaluation dataset sample count (sample count >= {min_sample_count}): {len(filtered_eval_dataset)}"
         )
 
         accuracy = evaluate_model(filtered_eval_dataset, filtered_brands)
         accuracies.append(accuracy)
-        print(f"サンプル数 >= {min_sample_count} のときの accuracy: {accuracy}")
+        print(f"Accuracy when sample count >= {min_sample_count}: {accuracy}")
 
-    # min_sample_countとその時のaccuracy, 全体のデータセットサンプル数とブランド数をcsvに保存
+    # Save min_sample_count, accuracy, total dataset sample count and brand count to CSV
     result_data = {
         "min_sample_count": min_sample_counts,
         "accuracy": accuracies,
@@ -118,7 +120,7 @@ if __name__ == "__main__":
     ]
     plt.xticks(min_sample_counts, x_labels, rotation=45, ha="right")
 
-    plt.ylim(bottom=0, top=1)  # 縦軸の開始値を0に設定
+    plt.ylim(bottom=0, top=1)  # Set the y-axis starting value to 0
     plt.grid()
     plt.tight_layout()
     plt.savefig("./baseline_brandsplit_accuracy.pdf", bbox_inches="tight")

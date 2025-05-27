@@ -67,7 +67,7 @@ class DatasetAnalyzer:
         ax1.set_xticks(range(len(ranges)))
         ax1.set_xticklabels(ranges, rotation=-45, ha="left")
 
-        # 各棒グラフの上にサンプル数を表示
+        # Display sample count above each bar graph
         for bar in bars:
             height = bar.get_height()
             ax1.text(
@@ -79,7 +79,7 @@ class DatasetAnalyzer:
                 fontsize=8,
             )
 
-        # 累積グラフ（線グラフ）
+        # Cumulative graph (line graph)
         sum_counts = []
         sum_count = 0
         for count in counts:
@@ -92,7 +92,7 @@ class DatasetAnalyzer:
         ax2.plot(ranges, sum_counts, color="r", marker="o", label="Sum")
         ax2.set_ylabel("Sum", color="r")
         ax2.tick_params("y", colors="r")
-        ax2.set_ylim(bottom=0)  # 折れ線グラフのメモリを0スタートにする
+        ax2.set_ylim(bottom=0)  # Set the line graph scale to start from 0
 
         plt.tight_layout()
         plt.savefig(f"{path}/graph.pdf", bbox_inches="tight")
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     print(df[df["count"] >= 1])
     fig, ax1 = plt.subplots()
 
-    # 棒グラフ (要素数)
+    # Bar graph (element count)
     ax1.bar(df["label"], df["count"], color="b", alpha=0.6, label="Counts")
     ax1.set_ylabel("Counts", color="b")
     ax1.tick_params("y", colors="b")

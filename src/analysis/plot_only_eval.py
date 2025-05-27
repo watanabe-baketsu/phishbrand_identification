@@ -34,7 +34,7 @@ if __name__ == "__main__":
     print(combined_accuracies)
     min_sample_counts = qa_results["min_sample_count"]
     brand_count = qa_results["total_brands"]
-    # グラフの描画
+    # Draw the graph
     plt.figure(figsize=(10, 6))
     plt.plot(
         min_sample_counts,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         label="SetFit Accuracy",
         marker="^",
     )
-    # 各点にテキストを追加
+    # Add text to each point
     for i, (qa_acc, baseline_acc, setfit_acc) in enumerate(
         zip(
             combined_accuracies["QA_Accuracy"],
@@ -107,13 +107,13 @@ if __name__ == "__main__":
 
     plt.xlabel("Sample Index")
     plt.ylabel("Accuracy")
-    # x軸のラベル設定
+    # Set x-axis labels
     x_labels = [
         f"{min_count}\n(num of brands={brand_count})"
         for min_count, brand_count in zip(min_sample_counts, brand_count)
     ]
     plt.xticks(min_sample_counts, x_labels, rotation=45, ha="right")
-    plt.ylim(0, 1.05)  # 縦軸の範囲を0から1に設定
+    plt.ylim(0, 1.05)  # Set the y-axis range from 0 to 1
     plt.grid(True)
     plt.legend()
     plt.tight_layout()

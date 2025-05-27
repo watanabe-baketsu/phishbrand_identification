@@ -13,7 +13,7 @@ def parse_args():
         type=str,
         required=True,
         default=PHISH_HTML_EN_QA,
-        help="データセットのパス",
+        help="Dataset path",
     )
     arg_parser.add_argument("--save_mode", type=bool, default=False)
     arg_parser.add_argument(
