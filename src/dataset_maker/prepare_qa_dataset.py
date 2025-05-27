@@ -1,10 +1,11 @@
 import json
 import uuid
 
-from datasets import Dataset, load_from_disk
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoTokenizer
-from src.config import PHISH_HTML_EN_QA_LONG_JSONL, PHISH_HTML_EN, PHISH_HTML_EN_QA
+
+from datasets import Dataset, load_from_disk
+from src.config import PHISH_HTML_EN, PHISH_HTML_EN_QA, PHISH_HTML_EN_QA_LONG_JSONL
 
 
 def tokenize(batch):

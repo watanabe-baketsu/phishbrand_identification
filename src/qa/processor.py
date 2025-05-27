@@ -4,10 +4,11 @@ from functools import partial
 
 import pandas as pd
 import torch
-from datasets import DatasetDict
 from nltk import ngrams
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForQuestionAnswering, AutoTokenizer
+
+from datasets import DatasetDict
 
 
 class QADatasetPreprocessor:

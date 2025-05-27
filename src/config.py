@@ -33,12 +33,22 @@ BENIGN_SAMPLE_30K = os.path.join(DATASET_DIR, "benign_sample_30k")
 # 追加のファイルパス
 PHISH_HTML_EN_QA_LONG_JSONL = os.path.join(DATASET_DIR, "phish-html-en-qa-long.jsonl")
 TRAINING_JSONL = os.path.join(DATASET_DIR, "training.jsonl")
-PHISH_HTML_EN_QA_LABEL_COUNT_CSV = os.path.join(DATASET_DIR, "phish-html-en-qa-label-count-training.csv")
+PHISH_HTML_EN_QA_LABEL_COUNT_CSV = os.path.join(
+    DATASET_DIR, "phish-html-en-qa-label-count-training.csv"
+)
 
 # GPT結果ディレクトリ
 GPT_35_RESULT_DIR = os.path.join(GPT_RESULT_DIR, "gpt-3.5-turbo-1106-result")
 GPT_4_RESULT_DIR = os.path.join(GPT_RESULT_DIR, "gpt-4-1106-preview-result")
 
 # 必要なディレクトリを作成
-for dir_path in [DATASET_DIR, MODEL_DIR, RESULT_DIR, QA_RESULT_DIR, BASELINE_RESULT_DIR, SETFIT_RESULT_DIR, GPT_RESULT_DIR]:
-    os.makedirs(dir_path, exist_ok=True) 
+for dir_path in [
+    DATASET_DIR,
+    MODEL_DIR,
+    RESULT_DIR,
+    QA_RESULT_DIR,
+    BASELINE_RESULT_DIR,
+    SETFIT_RESULT_DIR,
+    GPT_RESULT_DIR,
+]:
+    os.makedirs(dir_path, exist_ok=True)

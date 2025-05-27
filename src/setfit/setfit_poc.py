@@ -1,11 +1,12 @@
+import os
+
 import pandas as pd
 import torch
-from datasets import Dataset, DatasetDict, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
 
+from datasets import Dataset, DatasetDict, load_from_disk
 from setfit import SetFitModel, SetFitTrainer
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA, SETFIT_RESULT_DIR
-import os
 
 
 def load_dataset(path: str) -> dict:

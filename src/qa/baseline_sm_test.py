@@ -1,12 +1,20 @@
 import argparse
 import os
+
 from datasets import load_from_disk
-from src.qa.processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
 from src.config import BASELINE_RESULT_DIR, PHISH_HTML_EN_QA
+from src.qa.processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
+
 
 def parse_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--dataset", type=str, required=True, default=PHISH_HTML_EN_QA, help="データセットのパス")
+    arg_parser.add_argument(
+        "--dataset",
+        type=str,
+        required=True,
+        default=PHISH_HTML_EN_QA,
+        help="データセットのパス",
+    )
     arg_parser.add_argument("--save_mode", type=bool, default=False)
     arg_parser.add_argument(
         "--save_path",
@@ -14,6 +22,7 @@ def parse_args():
         default=os.path.join(BASELINE_RESULT_DIR, "sm_result.csv"),
     )
     return arg_parser.parse_args()
+
 
 if __name__ == "__main__":
     args = parse_args()

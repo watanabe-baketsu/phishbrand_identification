@@ -1,8 +1,9 @@
 from collections import Counter
 
 import pandas as pd
-from datasets import load_from_disk
 from matplotlib import pyplot as plt
+
+from datasets import load_from_disk
 from src.config import PHISH_HTML_EN_QA, PHISH_HTML_EN_QA_LABEL_COUNT_CSV, QA_RESULT_DIR
 
 
@@ -104,9 +105,7 @@ if __name__ == "__main__":
     print("only second labels : ", only_second_labels)
     analyzer.select_specified_range_samples(10000, 14000)
     print(analyzer.get_num_labels())
-    analyzer.display_answer_start_mapping(
-        path=QA_RESULT_DIR
-    )
+    analyzer.display_answer_start_mapping(path=QA_RESULT_DIR)
 
     df = analyzer.get_label_percentage()
     # save to csv

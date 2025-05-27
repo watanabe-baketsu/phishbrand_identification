@@ -1,8 +1,9 @@
 import torch
-from datasets import Dataset
 from peft import PeftConfig, PeftModel
 from sentence_transformers import SentenceTransformer, util
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+from datasets import Dataset
 
 
 def get_inference(batch):

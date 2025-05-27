@@ -1,7 +1,6 @@
 import argparse
 import os
-from datasets import load_from_disk
-from src.qa.processor import QADatasetPreprocessor
+
 from transformers import (
     AutoModelForQuestionAnswering,
     AutoTokenizer,
@@ -9,14 +8,23 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+from datasets import load_from_disk
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA
+from src.qa.processor import QADatasetPreprocessor
+
 
 def parse_args():
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--model_name", type=str, default="deepset/roberta-base-squad2")
+    arg_parser.add_argument(
+        "--model_name", type=str, default="deepset/roberta-base-squad2"
+    )
     arg_parser.add_argument("--dataset", type=str, default="phish-html-en-qa")
-    arg_parser.add_argument("--output_dir", type=str, default=os.path.join(MODEL_DIR, "qa"))
+    arg_parser.add_argument(
+        "--output_dir", type=str, default=os.path.join(MODEL_DIR, "qa")
+    )
     return arg_parser.parse_args()
+
 
 if __name__ == "__main__":
     args = parse_args()

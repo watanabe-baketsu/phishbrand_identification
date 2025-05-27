@@ -1,13 +1,21 @@
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
-from src.config import QA_RESULT_DIR, BASELINE_RESULT_DIR, SETFIT_RESULT_DIR
-import os
+
+from src.config import BASELINE_RESULT_DIR, QA_RESULT_DIR, SETFIT_RESULT_DIR
 
 if __name__ == "__main__":
     # load results
-    qa_result_path = os.path.join(QA_RESULT_DIR, "st_result", "only_eval_result", "qa_brandsplit_accuracy.csv")
-    sequencematch_result_path = os.path.join(BASELINE_RESULT_DIR, "only_eval_accuracy.csv")
-    setfit_result_path = os.path.join(SETFIT_RESULT_DIR, "setfit_brandsplit_accuracy.csv")
+    qa_result_path = os.path.join(
+        QA_RESULT_DIR, "st_result", "only_eval_result", "qa_brandsplit_accuracy.csv"
+    )
+    sequencematch_result_path = os.path.join(
+        BASELINE_RESULT_DIR, "only_eval_accuracy.csv"
+    )
+    setfit_result_path = os.path.join(
+        SETFIT_RESULT_DIR, "setfit_brandsplit_accuracy.csv"
+    )
     qa_results = pd.read_csv(qa_result_path)
     sequencematch_results = pd.read_csv(sequencematch_result_path)
     setfit_results = pd.read_csv(setfit_result_path)

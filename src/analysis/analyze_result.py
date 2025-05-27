@@ -1,8 +1,10 @@
+import os
+
 import matplotlib.pyplot as plt
 import pandas as pd
+
 from datasets import load_from_disk
 from src.config import SETFIT_RESULT_DIR
-import os
 
 
 class ResultAnalyzer:

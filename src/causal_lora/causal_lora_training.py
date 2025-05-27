@@ -1,5 +1,4 @@
 import torch
-from datasets import Dataset
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import (
     AutoModelForCausalLM,
@@ -8,6 +7,8 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+from datasets import Dataset
 
 
 def generate_prompt(batch):

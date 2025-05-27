@@ -1,5 +1,5 @@
 from analysis.analyze_result import ResultAnalyzer
-from src.config import GPT_35_RESULT_DIR, GPT_4_RESULT_DIR
+from src.config import GPT_4_RESULT_DIR, GPT_35_RESULT_DIR
 
 
 class GPTResultAnalyzer(ResultAnalyzer):

@@ -6,9 +6,17 @@ import re
 from typing import Literal
 
 from bs4 import BeautifulSoup
-from datasets import Dataset
 from langdetect import detect
-from src.config import BENIGN_SAMPLE_30K, PHISH_HTML_EN, PHISH_HTML_PICKUP_EN, PHISH_TEXT_EN, PHISH_FULL, TRAINING_JSONL
+
+from datasets import Dataset
+from src.config import (
+    BENIGN_SAMPLE_30K,
+    PHISH_FULL,
+    PHISH_HTML_EN,
+    PHISH_HTML_PICKUP_EN,
+    PHISH_TEXT_EN,
+    TRAINING_JSONL,
+)
 
 
 def replace_multiple_newlines(text):

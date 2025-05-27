@@ -1,15 +1,15 @@
+import os
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
-from datasets import Dataset, load_from_disk
 from sentence_transformers.losses import CosineSimilarityLoss
 
-from src.qa.processor import QADatasetPreprocessor
+from datasets import Dataset, load_from_disk
 from setfit import SetFitModel, SetFitTrainer
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA
-import os
+from src.qa.processor import QADatasetPreprocessor
 
 
 def load_dataset(path: str) -> dict:

@@ -1,13 +1,14 @@
 import argparse
 import os
-import torch
 from collections import Counter
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import torch
+
 from datasets import load_from_disk
-from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA, QA_RESULT_DIR
+from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):
@@ -47,7 +48,9 @@ def parse_args():
     arg_parser.add_argument(
         "--model_name",
         type=str,
-        default=os.path.join(MODEL_DIR, "qa", "splitbrands", "roberta-base-squad2", "checkpoint-5000"),
+        default=os.path.join(
+            MODEL_DIR, "qa", "splitbrands", "roberta-base-squad2", "checkpoint-5000"
+        ),
     )
     arg_parser.add_argument("--dataset", type=str, default=PHISH_HTML_EN_QA)
     arg_parser.add_argument("--save_mode", type=bool, default=False)

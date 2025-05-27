@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from langdetect import LangDetectException, detect
+
 from src.config import PHISHPEDIA_VANILLA
 
 

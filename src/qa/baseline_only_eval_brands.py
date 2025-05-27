@@ -4,9 +4,10 @@ from collections import Counter
 
 import matplotlib.pyplot as plt
 import pandas as pd
+
 from datasets import load_from_disk
+from src.config import BASELINE_RESULT_DIR, PHISH_HTML_EN_QA
 from src.qa.processor import BaselineBrandInferenceProcessor, QADatasetPreprocessor
-from src.config import PHISH_HTML_EN_QA, BASELINE_RESULT_DIR
 
 
 def filter_brands_by_sample_count(dataset, min_sample_count):

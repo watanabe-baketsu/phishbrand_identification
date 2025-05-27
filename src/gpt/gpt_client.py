@@ -1,15 +1,15 @@
+import argparse
 import os
 import re
 import time
-import argparse
 from os.path import dirname, join
 
 import pandas as pd
-from datasets import Dataset, load_from_disk
 from dotenv import load_dotenv
 from openai import APIError, OpenAI
 from sentence_transformers import SentenceTransformer, util
 
+from datasets import Dataset, load_from_disk
 from src.gpt.prompt import system_prompt
 
 load_dotenv()
@@ -121,13 +121,24 @@ def load_checkpoint_df(checkpoint_path: str) -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Phishing brand identification using GPT')
-    parser.add_argument('--dataset_path', type=str, required=True,
-                      help='Path to the dataset directory')
-    parser.add_argument('--model', type=str, default="gpt-4-1106-preview",
-                      help='GPT model to use (default: gpt-4-1106-preview)')
-    parser.add_argument('--output_dir', type=str, default=None,
-                      help='Directory to save results (default: same directory as dataset)')
+    parser = argparse.ArgumentParser(
+        description="Phishing brand identification using GPT"
+    )
+    parser.add_argument(
+        "--dataset_path", type=str, required=True, help="Path to the dataset directory"
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="gpt-4-1106-preview",
+        help="GPT model to use (default: gpt-4-1106-preview)",
+    )
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default=None,
+        help="Directory to save results (default: same directory as dataset)",
+    )
     args = parser.parse_args()
 
     model = args.model
@@ -147,9 +158,13 @@ if __name__ == "__main__":
     # brand = request_gpt(dataset[0]["context"], model)
     # print(brand)
 
-    output_dir = args.output_dir if args.output_dir else os.path.join(os.path.dirname(args.dataset_path), "gpt_results")
+    output_dir = (
+        args.output_dir
+        if args.output_dir
+        else os.path.join(os.path.dirname(args.dataset_path), "gpt_results")
+    )
     os.makedirs(output_dir, exist_ok=True)
-    
+
     checkpoint_df = load_checkpoint_df(os.path.join(output_dir, f"{model}-result.csv"))
     # add column "inference" if not exists
     if "inference" not in checkpoint_df.columns:

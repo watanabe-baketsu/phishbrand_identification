@@ -1,9 +1,12 @@
 import argparse
 import os
+
 import torch
+
 from datasets import load_from_disk
-from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
 from src.config import MODEL_DIR, PHISH_HTML_EN_QA, QA_RESULT_DIR
+from src.qa.processor import QABrandInferenceProcessor, QADatasetPreprocessor
+
 
 def parse_args():
     arg_parser = argparse.ArgumentParser()
@@ -20,6 +23,7 @@ def parse_args():
         default=os.path.join(QA_RESULT_DIR, "st_result", "qa_result.csv"),
     )
     return arg_parser.parse_args()
+
 
 if __name__ == "__main__":
     args = parse_args()
