@@ -149,7 +149,7 @@ class RawDatasetAnalysis:
 
     def _plot_distribution(self, ranges, counts, sum_counts):
         """Draw distribution graph"""
-        fig, ax1 = plt.subplots(figsize=(16, 8))  # Make graph size larger
+        fig, ax1 = plt.subplots(figsize=(12, 8))  # Make graph size larger
 
         # Set X-axis positions numerically
         x_positions = range(len(ranges))
@@ -165,12 +165,12 @@ class RawDatasetAnalysis:
         ax1.set_xticks(x_positions)
         display_labels = []
         for i, label in enumerate(ranges):
-            if i % step == 0 or i == len(ranges) - 1:  # Also display the last label
+            if i % step == 0:  # Remove condition to display the last label
                 display_labels.append(label)
             else:
                 display_labels.append("")  # Hide with empty string
 
-        ax1.set_xticklabels(display_labels, rotation=-45, ha="center", fontsize=10)
+        ax1.set_xticklabels(display_labels, rotation=-45, ha="left", fontsize=12)
         ax1.set_xlabel("File Length Range (characters)", fontsize=12)
 
         # Cumulative graph (line graph)
