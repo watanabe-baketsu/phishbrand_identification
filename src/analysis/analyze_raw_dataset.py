@@ -1,5 +1,6 @@
 import ast
 import glob
+import os
 from collections import Counter
 from concurrent.futures import ProcessPoolExecutor
 
@@ -23,6 +24,118 @@ class RawDatasetAnalysis:
         return result["encoding"]
 
     def count_chars_and_stats(self):
+        csv_file = "file_lengths_stats.csv"
+
+        # CSVファイルが存在する場合は読み込み
+        if os.path.exists(csv_file):
+            print("既存のCSVファイルから統計データを読み込んでいます...")
+            df = pd.read_csv(csv_file)
+
+            # 統計情報を表示
+            stats = df.iloc[0]
+            print("Max:", stats["max"])
+            print("Min:", stats["min"])
+            print("Avg:", stats["avg"])
+            print("Median:", stats["median"])
+            print("Std:", stats["std"])
+            print("Q1:", stats["q1"])
+            print("Q2:", stats["q2"])
+            print("Q3:", stats["q3"])
+
+            # 分布データを読み込み
+            distribution_csv = "file_lengths_distribution.csv"
+            if os.path.exists(distribution_csv):
+                dist_df = pd.read_csv(distribution_csv)
+                ranges = dist_df["range"].tolist()
+                counts = dist_df["count"].tolist()
+                sum_counts = dist_df["cumulative_count"].tolist()
+            else:
+                print("分布データが見つかりません。新しく計算します...")
+                ranges, counts, sum_counts = self._calculate_distribution()
+        else:
+            print("新しく統計データを計算しています...")
+            files = glob.glob(self.path + "/**/html.txt", recursive=True)
+            file_lengths = []
+
+            for file in files:
+                with open(file, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                    if len(content) > 0:
+                        file_lengths.append(len(content))
+
+            # 統計情報を計算
+            max_val = max(file_lengths)
+            min_val = min(file_lengths)
+            avg_val = sum(file_lengths) / len(file_lengths)
+            median_val = np.median(file_lengths)
+            std_val = np.std(file_lengths)
+            q1_val = np.quantile(file_lengths, 0.25)
+            q2_val = np.quantile(file_lengths, 0.5)
+            q3_val = np.quantile(file_lengths, 0.75)
+
+            # 統計情報を表示
+            print("Max:", max_val)
+            print("Min:", min_val)
+            print("Avg:", avg_val)
+            print("Median:", median_val)
+            print("Std:", std_val)
+            print("Q1:", q1_val)
+            print("Q2:", q2_val)
+            print("Q3:", q3_val)
+
+            # 統計情報をCSVに保存
+            stats_df = pd.DataFrame(
+                {
+                    "max": [max_val],
+                    "min": [min_val],
+                    "avg": [avg_val],
+                    "median": [median_val],
+                    "std": [std_val],
+                    "q1": [q1_val],
+                    "q2": [q2_val],
+                    "q3": [q3_val],
+                    "total_files": [len(file_lengths)],
+                }
+            )
+            stats_df.to_csv(csv_file, index=False)
+            print(f"統計データを {csv_file} に保存しました。")
+
+            # 分布データを計算
+            ranges, counts, sum_counts = self._calculate_distribution_from_lengths(
+                file_lengths
+            )
+
+            # 分布データをCSVに保存
+            distribution_csv = "file_lengths_distribution.csv"
+            dist_df = pd.DataFrame(
+                {"range": ranges, "count": counts, "cumulative_count": sum_counts}
+            )
+            dist_df.to_csv(distribution_csv, index=False)
+            print(f"分布データを {distribution_csv} に保存しました。")
+
+        # グラフを描画
+        self._plot_distribution(ranges, counts, sum_counts)
+
+    def _calculate_distribution_from_lengths(self, file_lengths):
+        """ファイル長のリストから分布データを計算"""
+        range_size = 20000
+        counts = Counter((x // range_size) * range_size for x in file_lengths)
+
+        sorted_counts = sorted(counts.items())
+        ranges = [str(x[0]) + "-" + str(x[0] + range_size) for x in sorted_counts]
+        counts = [x[1] for x in sorted_counts]
+
+        # 累積カウントを計算
+        sum_counts = []
+        sum_count = 0
+        for count in counts:
+            sum_count += count
+            sum_counts.append(sum_count)
+
+        return ranges, counts, sum_counts
+
+    def _calculate_distribution(self):
+        """既存のファイルから分布データを再計算（CSVが不完全な場合のフォールバック）"""
         files = glob.glob(self.path + "/**/html.txt", recursive=True)
         file_lengths = []
 
@@ -32,52 +145,57 @@ class RawDatasetAnalysis:
                 if len(content) > 0:
                     file_lengths.append(len(content))
 
-        # print basic statistics
-        print("Max:", max(file_lengths))
-        print("Min:", min(file_lengths))
-        print("Avg:", sum(file_lengths) / len(file_lengths))
-        print("Median:", np.median(file_lengths))
-        print("Std:", np.std(file_lengths))
-        print("Q1:", np.quantile(file_lengths, 0.25))
-        print("Q2:", np.quantile(file_lengths, 0.5))
-        print("Q3:", np.quantile(file_lengths, 0.75))
-        # plot distribution
-        # bar plot
-        range_size = 20000
-        counts = Counter((x // range_size) * range_size for x in file_lengths)
+        return self._calculate_distribution_from_lengths(file_lengths)
 
-        sorted_counts = sorted(counts.items())
-        ranges = [str(x[0]) + "-" + str(x[0] + range_size) for x in sorted_counts]
-        counts = [x[1] for x in sorted_counts]
+    def _plot_distribution(self, ranges, counts, sum_counts):
+        """分布グラフを描画"""
+        fig, ax1 = plt.subplots(figsize=(16, 8))  # グラフサイズをさらに大きく
 
-        fig, ax1 = plt.subplots()  # Adjust graph size
-        ax1.bar(ranges, counts, color="b", alpha=0.6, label="Counts")
-        ax1.set_ylabel("Counts", color="b", fontsize=8)
-        ax1.tick_params(
-            "y", colors="b", labelsize=8
-        )  # Set y-axis tick size to font size 8
-        ax1.set_xticks(range(len(ranges)))
-        ax1.set_xticklabels(ranges, rotation=-90, ha="left", fontsize=6)
+        # X軸の位置を数値で設定
+        x_positions = range(len(ranges))
 
-        # Cumulative graph (line graph)
-        sum_counts = []
-        sum_count = 0
-        for count in counts:
-            sum_count += count
-            sum_counts.append(sum_count)
-        # convert list to pandas series
-        sum_counts = pd.Series(sum_counts)
+        ax1.bar(x_positions, counts, color="b", alpha=0.6, label="Counts")
+        ax1.set_ylabel("Counts", color="b", fontsize=12)
+        ax1.tick_params("y", colors="b", labelsize=10)
 
+        # X軸のラベルを間引いて表示（間引きながらも正確な位置に配置）
+        step = max(1, len(ranges) // 30)  # 最大10個程度のラベルを表示
+
+        # すべての位置を設定するが、ラベルは間引いて表示
+        ax1.set_xticks(x_positions)
+        display_labels = []
+        for i, label in enumerate(ranges):
+            if i % step == 0 or i == len(ranges) - 1:  # 最後のラベルも表示
+                display_labels.append(label)
+            else:
+                display_labels.append("")  # 空文字で非表示
+
+        ax1.set_xticklabels(display_labels, rotation=-45, ha="center", fontsize=10)
+        ax1.set_xlabel("File Length Range (characters)", fontsize=12)
+
+        # 累積グラフ（線グラフ）
         ax2 = ax1.twinx()
-        ax2.plot(ranges, sum_counts, color="r", marker="o", label="Sum")
-        ax2.set_ylabel("Sum", color="r", fontsize=8)
-        ax2.tick_params(
-            "y", colors="r", labelsize=8
-        )  # Set y-axis tick size to font size 8
-        ax2.set_ylim(bottom=0)  # Set the line graph scale to start from 0
+        ax2.plot(
+            x_positions,
+            sum_counts,
+            color="r",
+            marker="o",
+            markersize=4,
+            label="Cumulative",
+        )
+        ax2.set_ylabel("Cumulative Count", color="r", fontsize=12)
+        ax2.tick_params("y", colors="r", labelsize=10)
+        ax2.set_ylim(bottom=0)
+
+        # グリッドを追加して見やすく
+        ax1.grid(True, alpha=0.3, axis="y")
+
+        # タイトルを追加
+        plt.title("Distribution of HTML File Lengths", fontsize=14, pad=20)
 
         plt.tight_layout()
-        plt.savefig("file_lengths_distribution.pdf", bbox_inches="tight")
+        plt.savefig("file_lengths_distribution.pdf", bbox_inches="tight", dpi=300)
+        print("グラフを file_lengths_distribution.pdf に保存しました。")
 
     def lang_count_and_stats(self):
         files = glob.glob(self.path + "/**/html.txt", recursive=True)
